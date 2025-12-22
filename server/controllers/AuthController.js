@@ -17,30 +17,37 @@ const signup = async (req, res) => {
                 success: false
             });
         }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        await UserModel.create({
-            name,
-            email,
-            password: hashedPassword,
-            provider: 'local'
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Signup successful"
-        });
-
-    } catch (err) {
-        console.error("Signup error:", err);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+const signup =async (req,res)=>{
+        try{
+            const {name,email,password}=req.body;
+            const existingUser=await UserModel.findOne({email});
+            if (existingUser) {
+                return res.status(409).json({
+                    message: 'User already exists, please login',
+                    success: false
+                });
+            }
+            const hashedPassword=await bcrypt.hash(password,10);
+            await UserModel.create({
+                name,
+                email,
+                password:hashedPassword,
+                provider:'local'
+            });
+            res.status(201).json({
+                success:true,
+                message:"Signup successful"
+            });
+        }catch(err){
+            console.error("Signup error:",err);
+            res.status(500).json({
+                success:false,
+                message:"Internal server error"
+            });
+        }
+    };
+     }
     }
-};
-
 /* ===================== LOGIN ===================== */
 const login = async (req, res) => {
     try {
