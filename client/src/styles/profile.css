@@ -1,0 +1,25 @@
+.profile-page {
+  padding: 40px;
+}
+
+.profile-grid {
+  display: flex;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.profile-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  width: 400px;
+}
+
+.profile-card input,
+.profile-card textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}

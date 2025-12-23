@@ -1,30 +1,34 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import './App.css';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Home from './pages/Home';
-import Landing from './pages/Landing';
-import { useState } from 'react';
-import RefrshHandler from './RefrshHandler';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import Jobs from "./pages/Jobs";
+import CareerAdvice from "./pages/CareerAdvice";
 
-  const PrivateRoute = ({ element }) => {
-    return isAuthenticated ? element : <Navigate to="/login" />
-  }
-
+export default function App() {
   return (
-    <div className="App">
-      <RefrshHandler setIsAuthenticated={setIsAuthenticated} />
+    <BrowserRouter>
+      <Navbar />
       <Routes>
-        <Route path='/' element={<Landing />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/signup' element={<Signup />} />
-        <Route path='/home' element={<PrivateRoute element={<Home />} />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/career-advice" element={<CareerAdvice />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </div>
+    </BrowserRouter>
   );
 }
-
-export default App;
