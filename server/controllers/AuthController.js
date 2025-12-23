@@ -6,17 +6,7 @@ const { OAuth2Client } = require('google-auth-library');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /* ===================== SIGNUP ===================== */
-const signup = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
 
-        const existingUser = await UserModel.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({
-                message: 'User already exists, please login',
-                success: false
-            });
-        }
 const signup =async (req,res)=>{
         try{
             const {name,email,password}=req.body;
@@ -46,8 +36,7 @@ const signup =async (req,res)=>{
             });
         }
     };
-     }
-    }
+     
 /* ===================== LOGIN ===================== */
 const login = async (req, res) => {
     try {
