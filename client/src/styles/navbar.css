@@ -1,0 +1,84 @@
+.navbar {
+  background: #fff3e6;
+  padding: 16px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-links a {
+  margin: 0 10px;
+  text-decoration: none;
+}
+.btn-outline {
+  border: 1px solid #6b8e6f;
+  padding: 6px 14px;
+  border-radius: 12px;
+}
+.btn-fill {
+  background: #6b8e6f;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 12px;
+}
+.profile {
+  position: relative;
+  cursor: pointer;
+}
+.dropdown {
+  position: absolute;
+  right: 0;
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.logo {
+  font-weight: 600;
+}
+
+.nav-center {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-wrapper {
+  position: relative;
+}
+
+.profile-icon {
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 35px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 120px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.profile-dropdown a {
+  text-decoration: none;
+  color: black;
+}
+
+.profile-dropdown button {
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: #c0392b;
+}
