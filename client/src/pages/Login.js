@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import "../styles/auth.css";
@@ -14,16 +14,19 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API}/api/auth/login`, {
+      const res = await axios.post(`${API}/auth/login`, {
         email,
         password
       });
 
       localStorage.setItem("token", res.data.jwtToken);
-      localStorage.setItem("user", JSON.stringify({
-        name: res.data.name,
-        email: res.data.email
-      }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          name: res.data.name,
+          email: res.data.email
+        })
+      );
 
       alert("Login successful");
       navigate("/");
@@ -34,25 +37,25 @@ export default function Login() {
 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const res = await axios.post(
-        `${API}/api/auth/google-login`,
-        { token: credentialResponse.credential }
-      );
+      const res = await axios.post(`${API}/auth/google`, {
+        token: credentialResponse.credential
+      });
 
       localStorage.setItem("token", res.data.jwtToken);
-      localStorage.setItem("user", JSON.stringify({
-        name: res.data.name,
-        email: res.data.email
-      }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          name: res.data.name,
+          email: res.data.email
+        })
+      );
 
       alert("Google login successful");
       navigate("/");
     } catch (err) {
-      console.error(err);
       alert("Google login failed");
     }
   };
-
 
   return (
     <div className="auth-box">
@@ -62,16 +65,20 @@ export default function Login() {
         <input
           placeholder="Email"
           autoComplete="email"
-          onChange={e => setEmail(e.target.value)}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
+
         <input
           type="password"
           placeholder="Password"
           autoComplete="current-password"
-          onChange={e => setPassword(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
+
         <button type="submit">Login</button>
       </form>
 
@@ -81,6 +88,10 @@ export default function Login() {
         onSuccess={handleGoogleLogin}
         onError={() => alert("Google login failed")}
       />
+
+      <p>
+        Don’t have an account? <Link to="/signup">Signup</Link>
+      </p>
     </div>
   );
 }

@@ -62,8 +62,10 @@ const login = async (req, res) => {
             });
         }
 
+        const userId = user._id || user.id;
+
         const jwtToken = jwt.sign(
-            { _id: user._id, email: user.email },
+            { _id: userId, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
@@ -112,14 +114,12 @@ const googleLogin = async (req, res) => {
                 googleId: sub,
                 provider: 'google'
             });
-        } else if (!user.googleId) {
-            user.googleId = sub;
-            user.provider = 'google';
-            await user.save();
         }
 
+        const userId = user._id || user.id;
+
         const jwtToken = jwt.sign(
-            { _id: user._id, email: user.email },
+            { _id: userId, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
