@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import "../styles/auth.css";
@@ -11,12 +11,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  /* ================= MANUAL LOGIN ================= */
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API}/auth/login`, {
+      const res = await axios.post(`${API}/api/auth/login`, {
         email,
-        password
+        password,
       });
 
       localStorage.setItem("token", res.data.jwtToken);
@@ -24,7 +25,7 @@ export default function Login() {
         "user",
         JSON.stringify({
           name: res.data.name,
-          email: res.data.email
+          email: res.data.email,
         })
       );
 
@@ -35,10 +36,11 @@ export default function Login() {
     }
   };
 
+  /* ================= GOOGLE LOGIN ================= */
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const res = await axios.post(`${API}/auth/google`, {
-        token: credentialResponse.credential
+      const res = await axios.post(`${API}/api/auth/google-login`, {
+        token: credentialResponse.credential,
       });
 
       localStorage.setItem("token", res.data.jwtToken);
@@ -46,13 +48,14 @@ export default function Login() {
         "user",
         JSON.stringify({
           name: res.data.name,
-          email: res.data.email
+          email: res.data.email,
         })
       );
 
       alert("Google login successful");
       navigate("/");
     } catch (err) {
+      console.error(err);
       alert("Google login failed");
     }
   };
@@ -63,9 +66,9 @@ export default function Login() {
 
       <form onSubmit={handleLogin}>
         <input
+          type="email"
           placeholder="Email"
           autoComplete="email"
-          value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
@@ -74,7 +77,6 @@ export default function Login() {
           type="password"
           placeholder="Password"
           autoComplete="current-password"
-          value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
@@ -88,10 +90,6 @@ export default function Login() {
         onSuccess={handleGoogleLogin}
         onError={() => alert("Google login failed")}
       />
-
-      <p>
-        Don’t have an account? <Link to="/signup">Signup</Link>
-      </p>
     </div>
   );
 }
