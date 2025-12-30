@@ -1,34 +1,86 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 import "../styles/auth.css";
+
+const API = process.env.REACT_APP_API_URL;
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const user = users.find(u => u.email === email && u.password === password);
+    try {
+      const res = await axios.post(`${API}/api/auth/login`, {
+        email,
+        password
+      });
 
-    if (!user) {
-      alert("Wrong credentials or user does not exist");
-      return;
+      localStorage.setItem("token", res.data.jwtToken);
+      localStorage.setItem("user", JSON.stringify({
+        name: res.data.name,
+        email: res.data.email
+      }));
+
+      alert("Login successful");
+      navigate("/");
+    } catch (err) {
+      alert(err.response?.data?.message || "Login failed");
     }
-
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    alert(`Login successful! Welcome ${user.name}`);
-    navigate("/");
   };
 
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      const res = await axios.post(
+        `${API}/api/auth/google-login`,
+        { token: credentialResponse.credential }
+      );
+
+      localStorage.setItem("token", res.data.jwtToken);
+      localStorage.setItem("user", JSON.stringify({
+        name: res.data.name,
+        email: res.data.email
+      }));
+
+      alert("Google login successful");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert("Google login failed");
+    }
+  };
+
+
   return (
-    <form className="auth-box" onSubmit={handleLogin}>
+    <div className="auth-box">
       <h2>Welcome Back</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} required />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} required />
-      <button>Login</button>
-    </form>
+
+      <form onSubmit={handleLogin}>
+        <input
+          placeholder="Email"
+          autoComplete="email"
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          autoComplete="current-password"
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Login</button>
+      </form>
+
+      <hr />
+
+      <GoogleLogin
+        onSuccess={handleGoogleLogin}
+        onError={() => alert("Google login failed")}
+      />
+    </div>
   );
 }

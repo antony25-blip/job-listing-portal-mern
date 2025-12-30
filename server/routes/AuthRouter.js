@@ -4,6 +4,6 @@ const router = require('express').Router();
 
 router.post('/login', loginValidation, login);
 router.post('/signup', signupValidation, signup);
-router.post('/google', googleLogin);
+router.post('/google-login', googleLogin);
 
 module.exports = router;

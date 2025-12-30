@@ -6,76 +6,70 @@ const { OAuth2Client } = require('google-auth-library');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /* ===================== SIGNUP ===================== */
+const signup = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
 
-const signup =async (req,res)=>{
-        try{
-            const {name,email,password}=req.body;
-            const existingUser=await UserModel.findOne({email});
-            if (existingUser) {
-                return res.status(409).json({
-                    message: 'User already exists, please login',
-                    success: false
-                });
-            }
-            const hashedPassword=await bcrypt.hash(password,10);
-            await UserModel.create({
-                name,
-                email,
-                password:hashedPassword,
-                provider:'local'
-            });
-            res.status(201).json({
-                success:true,
-                message:"Signup successful"
-            });
-        }catch(err){
-            console.error("Signup error:",err);
-            res.status(500).json({
-                success:false,
-                message:"Internal server error"
+        const existingUser = await UserModel.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "User already exists, please login"
             });
         }
-    };
-     
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await UserModel.create({
+            name,
+            email,
+            password: hashedPassword,
+            provider: 'local'
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Signup successful"
+        });
+
+    } catch (err) {
+        console.error("Signup error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 /* ===================== LOGIN ===================== */
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
         const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.status(403).json({
+        if (!user || !user.password) {
+            return res.status(401).json({
                 success: false,
-                message: "Auth failed email or password is wrong"
+                message: "Invalid email or password"
             });
         }
 
-        if (!user.password) {
-            return res.status(403).json({
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
                 success: false,
-                message: "Please login using Google"
+                message: "Invalid email or password"
             });
         }
-
-        const isPassEqual = await bcrypt.compare(password, user.password);
-        if (!isPassEqual) {
-            return res.status(403).json({
-                success: false,
-                message: "Auth failed email or password is wrong"
-            });
-        }
-
-        const userId = user._id || user.id;
 
         const jwtToken = jwt.sign(
-            { email: user.email, _id: userId },
+            { _id: user._id, email: user.email },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: "24h" }
         );
 
-        res.status(200).json({
+        res.json({
             success: true,
-            message: "Login success",
             jwtToken,
             name: user.name,
             email: user.email
@@ -95,15 +89,21 @@ const googleLogin = async (req, res) => {
     try {
         const { token } = req.body;
 
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: "Google token is required"
+            });
+        }
+
         const ticket = await googleClient.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID
         });
 
-        const payload = ticket.getPayload();
-        const { sub, email, name } = payload;
+        const { sub, email, name } = ticket.getPayload();
 
-        let user = await UserModel.findOne({ googleId: sub });
+        let user = await UserModel.findOne({ email });
 
         if (!user) {
             user = await UserModel.create({
@@ -112,19 +112,20 @@ const googleLogin = async (req, res) => {
                 googleId: sub,
                 provider: 'google'
             });
+        } else if (!user.googleId) {
+            user.googleId = sub;
+            user.provider = 'google';
+            await user.save();
         }
 
-        const userId = user._id || user.id;
-
         const jwtToken = jwt.sign(
-            { email: user.email, _id: userId },
+            { _id: user._id, email: user.email },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: "24h" }
         );
 
-        res.status(200).json({
+        res.json({
             success: true,
-            message: "Google login successful",
             jwtToken,
             name: user.name,
             email: user.email
@@ -139,9 +140,4 @@ const googleLogin = async (req, res) => {
     }
 };
 
-/* ===================== EXPORTS ===================== */
-module.exports = {
-    signup,
-    login,
-    googleLogin
-};
+module.exports = { signup, login, googleLogin };

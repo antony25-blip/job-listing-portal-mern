@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../styles/auth.css";
+
+const API = process.env.REACT_APP_API_URL;
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -8,29 +11,48 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-    if (users.find(u => u.email === email)) {
-      alert("User already exists");
-      return;
+    try {
+      const res = await axios.post(`${API}/api/auth/signup`, {
+        name,
+        email,
+        password
+      });
+
+      alert(res.data.message || "Signup successful");
+      navigate("/login");
+    } catch (err) {
+      alert(err.response?.data?.message || "Signup failed");
     }
-
-    users.push({ name, email, password });
-    localStorage.setItem("users", JSON.stringify(users));
-
-    alert("Signup successful! You can now login.");
-    navigate("/login");
   };
 
   return (
-    <form className="auth-box" onSubmit={handleSignup}>
+    <div className="auth-box">
       <h2>Create Account</h2>
-      <input placeholder="Name" onChange={e => setName(e.target.value)} required />
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} required />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} required />
-      <button>Sign Up</button>
-    </form>
+
+      <form onSubmit={handleSignup}>
+        <input
+          placeholder="Name"
+          onChange={e => setName(e.target.value)}
+          required
+        />
+        <input
+          placeholder="Email"
+          autoComplete="email"
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          autoComplete="new-password"
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Sign Up</button>
+      </form>
+    </div>
   );
 }
