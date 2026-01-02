@@ -4,13 +4,21 @@ const EmployerProfileSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: true,
     unique: true
   },
-  companyName: String,
+  companyName: {
+    type: String,
+    required: true
+  },
+  companyEmail: {
+    type: String,
+    required: true
+  },
   phone: String,
-  location: String,
   website: String,
-  description: String
-});
+  description: String,
+  location: String
+}, { timestamps: true });
 
 module.exports = mongoose.model("EmployerProfile", EmployerProfileSchema);

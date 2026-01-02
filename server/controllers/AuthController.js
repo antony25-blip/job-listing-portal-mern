@@ -8,7 +8,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 /* ===================== SIGNUP ===================== */
 const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
@@ -20,10 +20,11 @@ const signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await UserModel.create({
+    const user = await UserModel.create({
       name,
       email,
       password: hashedPassword,
+      role: role || "jobseeker", // ✅ default role
       provider: "local",
     });
 
@@ -61,8 +62,13 @@ const login = async (req, res) => {
       });
     }
 
+    // ✅ role included in JWT
     const jwtToken = jwt.sign(
-      { _id: user._id, email: user.email },
+      {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -72,6 +78,7 @@ const login = async (req, res) => {
       jwtToken,
       name: user.name,
       email: user.email,
+      role: user.role, // ✅ send role to frontend
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -85,7 +92,7 @@ const login = async (req, res) => {
 /* ===================== GOOGLE LOGIN ===================== */
 const googleLogin = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token, role } = req.body;
 
     if (!token) {
       return res.status(400).json({
@@ -103,17 +110,24 @@ const googleLogin = async (req, res) => {
 
     let user = await UserModel.findOne({ email });
 
+    // ✅ create user if not exists
     if (!user) {
       user = await UserModel.create({
         name,
         email,
         googleId: sub,
+        role: role || "jobseeker", // ✅ use provided role or default
         provider: "google",
       });
     }
 
+    // ✅ role included in JWT
     const jwtToken = jwt.sign(
-      { _id: user._id, email: user.email },
+      {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -123,6 +137,7 @@ const googleLogin = async (req, res) => {
       jwtToken,
       name: user.name,
       email: user.email,
+      role: user.role, // ✅ send role
     });
   } catch (err) {
     console.error("Google login error:", err);

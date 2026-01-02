@@ -1,23 +1,25 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import "../styles/navbar.css";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem("isLoggedIn");
   const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  const logout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("currentUser");
+  const handleLogout = () => {
+    logout();
     setOpen(false);
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <nav className="navbar">
       {/* LEFT */}
-      <h2 className="logo">JobPortal</h2>
+      <h2 className="logo" onClick={() => navigate("/")}>
+        JobPortal
+      </h2>
 
       {/* CENTER */}
       <div className="nav-center">
@@ -28,15 +30,21 @@ export default function Navbar() {
 
       {/* RIGHT */}
       <div className="nav-right">
-        {!isLoggedIn ? (
+        {!user ? (
           <>
-            <Link className="btn-outline" to="/login">Login</Link>
-            <Link className="btn-fill" to="/signup">Sign Up</Link>
+            <Link className="btn-outline" to="/login">
+              Login
+            </Link>
+            <Link className="btn-fill" to="/signup">
+              Sign Up
+            </Link>
           </>
         ) : (
           <div className="profile-wrapper">
             <span
               className="profile-icon"
+              role="button"
+              tabIndex={0}
               onClick={() => setOpen(!open)}
             >
               👤
@@ -44,10 +52,32 @@ export default function Navbar() {
 
             {open && (
               <div className="profile-dropdown">
-                <Link to="/dashboard" onClick={() => setOpen(false)}>
-                  Dashboard
-                </Link>
-                <button onClick={logout}>Logout</button>
+                <span style={{ fontWeight: 600 }}>
+                  {user?.name || "User"}
+                </span>
+
+                <hr />
+
+                {/* Role-based links */}
+                {user?.role === "employer" ? (
+                  <Link
+                    to="/profile/employer"
+                    onClick={() => setOpen(false)}
+                  >
+                    Company Profile
+                  </Link>
+                ) : (
+                  <Link
+                    to="/profile/jobseeker"
+                    onClick={() => setOpen(false)}
+                  >
+                    My Profile
+                  </Link>
+                )}
+
+
+
+                <button onClick={handleLogout}>Logout</button>
               </div>
             )}
           </div>

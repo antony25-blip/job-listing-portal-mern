@@ -22,7 +22,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ["local", "google"],
     required: true
+  },
+  // server/models/User.js
+  role: {
+    type: String,
+    enum: ["jobseeker", "employer"],
+    default: "jobseeker"
   }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", UserSchema);
