@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
 const API = process.env.REACT_APP_API_URL;
@@ -10,6 +11,16 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  /* ================= REDIRECT BASED ON ROLE ================= */
+  const redirectByRole = (role) => {
+    if (role === "employer") {
+      navigate("/profile/employer");
+    } else {
+      navigate("/profile/jobseeker");
+    }
+  };
 
   /* ================= MANUAL LOGIN ================= */
   const handleLogin = async (e) => {
@@ -20,17 +31,18 @@ export default function Login() {
         password,
       });
 
+      const user = {
+        name: res.data.name,
+        email: res.data.email,
+        role: res.data.role || "jobseeker", // fallback
+      };
+
       localStorage.setItem("token", res.data.jwtToken);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: res.data.name,
-          email: res.data.email,
-        })
-      );
+      localStorage.setItem("user", JSON.stringify(user));
+      login(user);
 
       alert("Login successful");
-      navigate("/");
+      redirectByRole(user.role);
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     }
@@ -43,17 +55,18 @@ export default function Login() {
         token: credentialResponse.credential,
       });
 
+      const user = {
+        name: res.data.name,
+        email: res.data.email,
+        role: res.data.role || "jobseeker", // fallback
+      };
+
       localStorage.setItem("token", res.data.jwtToken);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: res.data.name,
-          email: res.data.email,
-        })
-      );
+      localStorage.setItem("user", JSON.stringify(user));
+      login(user);
 
       alert("Google login successful");
-      navigate("/");
+      redirectByRole(user.role);
     } catch (err) {
       console.error(err);
       alert("Google login failed");

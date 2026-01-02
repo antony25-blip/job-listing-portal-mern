@@ -1,19 +1,114 @@
+/* Modern Auth Styles */
 .auth-box {
-  width: 350px;
-  margin: 80px auto;
-  padding: 30px;
+  width: 100%;
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 40px;
   background: white;
   border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  /* Soft, modern shadow */
+  text-align: center;
+  transition: transform 0.3s ease;
 }
-.auth-box input {
+
+.auth-box:hover {
+  transform: translateY(-5px);
+  /* Subtle lift on hover */
+}
+
+.auth-box h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  color: #2c3e50;
+  /* Matching navbar text color */
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+}
+
+/* Form Layout */
+.auth-box form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* Modern spacing */
+}
+
+/* Inputs & Selects */
+.auth-box input,
+.auth-box select,
+.auth-box textarea {
   width: 100%;
-  margin: 10px 0;
-  padding: 10px;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  /* Smooth rounded corners */
+  font-size: 15px;
+  color: #2c3e50;
+  background: #f8f9fa;
+  transition: all 0.25s ease;
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  /* Allow vertical resize for textarea */
 }
+
+.auth-box input::placeholder,
+.auth-box select::placeholder,
+.auth-box textarea::placeholder {
+  color: #a0aec0;
+}
+
+.auth-box input:focus,
+.auth-box select:focus,
+.auth-box textarea:focus {
+  border-color: #6b8e6f;
+  /* Theme color */
+  background: white;
+  box-shadow: 0 0 0 3px rgba(107, 142, 111, 0.15);
+  /* Focus ring */
+}
+
+/* Buttons */
 .auth-box button {
   width: 100%;
+  padding: 14px;
   background: #6b8e6f;
   color: white;
-  border-radius: 12px;
-  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  box-shadow: 0 4px 6px rgba(107, 142, 111, 0.2);
+}
+
+.auth-box button:hover {
+  background: #5f8164;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(107, 142, 111, 0.25);
+}
+
+.auth-box button:active {
+  transform: scale(0.98);
+}
+
+/* Divider */
+.auth-box hr {
+  margin: 28px 0;
+  border: none;
+  border-top: 1px solid #eee;
+  position: relative;
+  overflow: visible;
+}
+
+/* Google Login Wrapper */
+.auth-box>div {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
