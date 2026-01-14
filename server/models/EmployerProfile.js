@@ -18,7 +18,8 @@ const EmployerProfileSchema = new mongoose.Schema({
   phone: String,
   website: String,
   description: String,
-  location: String
+  location: String,
+  logo: String
 }, { timestamps: true });
 
 module.exports = mongoose.model("EmployerProfile", EmployerProfileSchema);

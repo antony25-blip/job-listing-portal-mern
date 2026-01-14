@@ -22,7 +22,7 @@ export default function JobSeekerProfile() {
     const fetchProfile = async () => {
       try {
         const res = await axios.get(`${API}/api/profile/jobseeker`, {
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         const data = res.data.profile;
@@ -62,7 +62,7 @@ export default function JobSeekerProfile() {
     try {
       await axios.post(`${API}/api/profile/jobseeker`, formData, {
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data"
         }
       });

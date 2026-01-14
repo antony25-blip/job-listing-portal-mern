@@ -28,3 +28,23 @@ body {
 .dashboard {
   animation: fadeInUp 0.5s ease-out;
 }
+
+.btn-primary {
+  background-color: #6b8e6f;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(107, 142, 111, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: #5f8164;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(107, 142, 111, 0.3);
+}

@@ -16,9 +16,9 @@ export default function Login() {
   /* ================= REDIRECT BASED ON ROLE ================= */
   const redirectByRole = (role) => {
     if (role === "employer") {
-      navigate("/profile/employer");
+      navigate("/my-jobs");
     } else {
-      navigate("/profile/jobseeker");
+      navigate("/jobs");
     }
   };
 

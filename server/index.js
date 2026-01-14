@@ -26,10 +26,10 @@ app.use("/api/profile/employer", require("./routes/EmployerProfileRouter"));
 // Resume access
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-/* ================= SAMPLE API ================= */
-app.get("/api/jobs", (req, res) => {
-  res.json([]);
-});
+app.use("/api/jobs", require("./routes/JobRouter"));
+
+
+
 
 /* ================= DATABASE + SERVER ================= */
 mongoose.connect(process.env.MONGO_CONN)
