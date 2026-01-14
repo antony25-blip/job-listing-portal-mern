@@ -10,7 +10,13 @@ import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
 import CareerAdvice from "./pages/CareerAdvice";
 import JobSeekerProfile from "./pages/JobSeekerProfile";
+import JobSeekerProfileView from "./pages/JobSeekerProfileView";
+
 import EmployerProfile from "./pages/EmployerProfile";
+import EmployerProfileView from "./pages/EmployerProfileView";
+import CreateJob from "./pages/CreateJob";
+import EditJob from "./pages/EditJob";
+import EmployerJobs from "./pages/EmployerJobs"; // 👈 NEW
 
 export default function App() {
   return (
@@ -50,6 +56,51 @@ export default function App() {
           element={
             <RoleRoute allowedRole="employer">
               <EmployerProfile />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/profile/employer/view"
+          element={
+            <RoleRoute allowedRole="employer">
+              <EmployerProfileView />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/profile/jobseeker/view"
+          element={
+            <RoleRoute allowedRole="jobseeker">
+              <JobSeekerProfileView />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/my-jobs"
+          element={
+            <RoleRoute allowedRole="employer">
+              <EmployerJobs />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/jobs/create"
+          element={
+            <RoleRoute allowedRole="employer">
+              <CreateJob />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/jobs/edit/:jobId"
+          element={
+            <RoleRoute allowedRole="employer">
+              <EditJob />
             </RoleRoute>
           }
         />

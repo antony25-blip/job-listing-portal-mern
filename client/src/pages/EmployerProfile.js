@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import "../styles/auth.css";
@@ -12,9 +13,11 @@ export default function EmployerProfile() {
     phone: "",
     website: "",
     description: "",
-    location: ""
+    location: "",
+    logo: ""
   });
 
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   /* ================= FETCH PROFILE ================= */
@@ -22,7 +25,7 @@ export default function EmployerProfile() {
     const fetchProfile = async () => {
       try {
         const res = await axios.get(`${API}/api/profile/employer`, {
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         setProfile(res.data.profile);
@@ -45,10 +48,11 @@ export default function EmployerProfile() {
 
     try {
       await axios.post(`${API}/api/profile/employer`, profile, {
-        headers: { Authorization: token }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       alert("Employer profile saved successfully");
+      navigate("/profile/employer/view");
     } catch (err) {
       alert("Failed to save employer profile");
     }
@@ -86,6 +90,13 @@ export default function EmployerProfile() {
           name="website"
           placeholder="Website"
           value={profile.website || ""}
+          onChange={handleChange}
+        />
+
+        <input
+          name="logo"
+          placeholder="Company Logo URL"
+          value={profile.logo || ""}
           onChange={handleChange}
         />
 

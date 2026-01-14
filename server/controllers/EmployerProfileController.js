@@ -44,7 +44,8 @@ exports.createOrUpdateProfile = async (req, res) => {
       phone,
       website,
       description,
-      location
+      location,
+      logo
     } = req.body;
 
     const profileData = {
@@ -54,7 +55,8 @@ exports.createOrUpdateProfile = async (req, res) => {
       phone,
       website,
       description,
-      location
+      location,
+      logo
     };
 
     const profile = await EmployerProfile.findOneAndUpdate(
