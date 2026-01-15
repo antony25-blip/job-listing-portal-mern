@@ -43,6 +43,8 @@ export default function Navbar() {
         }
       };
       fetchProfile();
+    } else {
+      setLogo(null);
     }
   }, [user, API]);
 
