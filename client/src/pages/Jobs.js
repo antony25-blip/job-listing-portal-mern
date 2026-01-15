@@ -6,6 +6,7 @@ const API = process.env.REACT_APP_API_URL;
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const [search, setSearch] = useState({
     keyword: "",
@@ -105,20 +106,92 @@ export default function Jobs() {
               </p>
 
               <div style={{ margin: "10px 0", color: "#6b8e6f", fontWeight: "bold" }}>
-                ${job.salaryRange?.min.toLocaleString()} - ${job.salaryRange?.max.toLocaleString()}
+                ${job.salaryMin?.toLocaleString()} - ${job.salaryMax?.toLocaleString()}
               </div>
 
-              <p style={{ fontSize: "14px", color: "#444", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              <p style={{ fontSize: "14px", color: "#444", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", marginBottom: "15px" }}>
                 {job.description}
               </p>
 
-              <button onClick={() => alert("Apply feature coming soon!")}>Apply Now</button>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={() => setSelectedJob(job)} className="btn-view">View</button>
+                <button onClick={() => alert("Apply feature coming soon!")}>Apply Now</button>
+              </div>
             </div>
           ))
         ) : (
           <p style={{ textAlign: "center", width: "100%", gridColumn: "1 / -1" }}>No jobs found matching your criteria.</p>
         )}
       </div>
+
+      {/* JOB DETAILS MODAL */}
+      {selectedJob && (
+        <div className="modal-overlay" onClick={() => setSelectedJob(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="btn-close" onClick={() => setSelectedJob(null)}>&times;</button>
+
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              {selectedJob.companyLogo && (
+                <img
+                  src={selectedJob.companyLogo}
+                  alt="Logo"
+                  style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", marginBottom: "10px" }}
+                />
+              )}
+              <h2 style={{ margin: "0 0 5px 0" }}>{selectedJob.title}</h2>
+              <p style={{ color: "#666", margin: 0 }}>{selectedJob.companyName || "Company Name"}</p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", marginBottom: "20px", background: "#f9f9f9", padding: "15px", borderRadius: "8px" }}>
+              <div>
+                <strong>📍 Location:</strong> <br /> {selectedJob.location}
+              </div>
+              <div>
+                <strong>💼 Job Type:</strong> <br /> {selectedJob.jobType}
+              </div>
+              <div>
+                <strong>💰 Salary:</strong> <br /> ${selectedJob.salaryMin?.toLocaleString()} - ${selectedJob.salaryMax?.toLocaleString()}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+              <h4 style={{ borderBottom: "2px solid #a8d5ba", display: "inline-block", paddingBottom: "3px" }}>Description</h4>
+              <p style={{ lineHeight: "1.6", color: "#444" }}>{selectedJob.description}</p>
+            </div>
+
+            {selectedJob.qualifications?.length > 0 && (
+              <div style={{ marginBottom: "20px" }}>
+                <h4 style={{ borderBottom: "2px solid #a8d5ba", display: "inline-block", paddingBottom: "3px" }}>Qualifications</h4>
+                <ul style={{ paddingLeft: "20px", marginTop: "10px" }}>
+                  {selectedJob.qualifications.map((q, i) => (
+                    <li key={i} style={{ marginBottom: "5px", color: "#444" }}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {selectedJob.responsibilities?.length > 0 && (
+              <div style={{ marginBottom: "20px" }}>
+                <h4 style={{ borderBottom: "2px solid #a8d5ba", display: "inline-block", paddingBottom: "3px" }}>Responsibilities</h4>
+                <ul style={{ paddingLeft: "20px", marginTop: "10px" }}>
+                  {selectedJob.responsibilities.map((r, i) => (
+                    <li key={i} style={{ marginBottom: "5px", color: "#444" }}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div style={{ textAlign: "center", marginTop: "30px" }}>
+              <button
+                onClick={() => alert("Apply feature coming soon!")}
+                style={{ padding: "12px 30px", fontSize: "16px", borderRadius: "8px" }}
+              >
+                Apply Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
