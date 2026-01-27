@@ -148,4 +148,27 @@ const googleLogin = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, googleLogin };
+/* ===================== ME (SESSION) ===================== */
+const me = async (req, res) => {
+  // req.user is set by requireRole middleware (decoding JWT)
+  // We should fetch fresh user data from DB to be safe/current
+  try {
+    const user = await UserModel.findById(req.user._id); // Assuming _id is in token payload
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({
+      success: true,
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      picture: user.avatar // Adjust if model uses different field, checked auth-context used picture/avatar
+    });
+  } catch (err) {
+    console.error("Me error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports = { signup, login, googleLogin, me };

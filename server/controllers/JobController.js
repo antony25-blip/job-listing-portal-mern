@@ -90,7 +90,7 @@ exports.getAllJobs = async (req, res) => {
 /* ================= GET EMPLOYER JOBS ================= */
 exports.getEmployerJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({ employerId: req.user._id });
+    const jobs = await Job.find({ employerId: req.user._id }).populate("applicants");
     res.status(200).json({
       success: true,
       jobs,

@@ -10,10 +10,7 @@ const JobSeekerProfileSchema = new mongoose.Schema({
   fullName: String,
   phone: String,
   skills: [String],
-  experience: {
-  type: String,
-  enum: ["Fresher", "1-3 years", "3-5 years", "5+ years"]
-  },
+  experience: [String],
   resumeUrl: String,
   location: String
 });

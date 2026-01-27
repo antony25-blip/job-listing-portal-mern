@@ -61,6 +61,13 @@ exports.createOrUpdateProfile = async (req, res) => {
         : skills.split(",").map(s => s.trim());
     }
 
+    // ✅ Experience can be string or array
+    if (experience) {
+      profileData.experience = Array.isArray(experience)
+        ? experience
+        : [experience]; // If single string, wrap in array. Unlike skills CSV, experience is likely separate entries.
+    }
+
     // ✅ Resume upload via multer
     if (req.file) {
       profileData.resumeUrl = `/uploads/resumes/${req.file.filename}`;

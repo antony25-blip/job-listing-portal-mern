@@ -25,21 +25,22 @@ const signupValidation = (req, res, next) => {
 
 
 const loginValidation = (req, res, next) => {
-    const schema = Joi.object({
-        email: Joi.string().email().required(),
-        password: Joi.string().min(4).max(100).required()
-    });
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(4).max(100).required(),
+    role: Joi.string().optional().allow(null, "") // 👈 Allow role field to be optional/empty
+  });
 
-    const { error } = schema.validate(req.body);
-    if (error) {
-        return res.status(400).json({
-            message: error.details[0].message
-        });
-    }
-    next();
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      message: error.details[0].message
+    });
+  }
+  next();
 };
 
 module.exports = {
-    signupValidation,
-    loginValidation
+  signupValidation,
+  loginValidation
 };
