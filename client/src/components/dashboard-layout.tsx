@@ -13,8 +13,16 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [location, setLocation] = useLocation();
-  const { user, logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     setLocation("/login");
@@ -25,17 +33,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation = isEmployer
     ? [
-        { name: "Dashboard", href: "/employer/dashboard", icon: Home },
-        { name: "My Jobs", href: "/employer/jobs", icon: Briefcase },
-        { name: "Post a Job", href: "/employer/post-job", icon: Plus },
-        { name: "Applicants", href: "/employer/applicants", icon: Users },
-      ]
+      { name: "Dashboard", href: "/employer/dashboard", icon: Home },
+      { name: "My Jobs", href: "/employer/jobs", icon: Briefcase },
+      { name: "Post a Job", href: "/employer/post-job", icon: Plus },
+      { name: "Applicants", href: "/employer/applicants", icon: Users },
+    ]
     : [
-        { name: "Dashboard", href: "/seeker/dashboard", icon: Home },
-        { name: "Browse Jobs", href: "/jobs", icon: Search },
-        { name: "My Applications", href: "/seeker/applications", icon: FileText },
-        { name: "Profile", href: "/seeker/profile", icon: User },
-      ];
+      { name: "Dashboard", href: "/seeker/dashboard", icon: Home },
+      { name: "Browse Jobs", href: "/jobs", icon: Search },
+      { name: "My Applications", href: "/seeker/applications", icon: FileText },
+      { name: "Profile", href: "/seeker/profile", icon: User },
+    ];
 
   const handleLogout = () => {
     logout();
@@ -51,9 +59,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -84,11 +91,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Link key={item.name} href={item.href}>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start gap-3 ${
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                    }`}
+                    className={`w-full justify-start gap-3 ${isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      }`}
                     data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, "-")}`}
                   >
                     <item.icon className="w-5 h-5" />

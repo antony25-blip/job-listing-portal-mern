@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,12 @@ export default function JobDetail() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [coverLetter, setCoverLetter] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [skills, setSkills] = useState("");
+  const [experience, setExperience] = useState("");
+  const [education, setEducation] = useState("");
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
@@ -44,13 +51,16 @@ export default function JobDetail() {
     }
 
     applyToJob(job.id, {
-      jobId: job.id,
-      applicantId: user.id,
-      applicantName: user.name,
-      applicantEmail: user.email,
-      applicantAvatar: user.avatar,
+      fullName,
+      email,
+      phone,
+      skills: skills.split(",").map(s => s.trim()).filter(Boolean),
+      experience,
+      education,
       coverLetter,
-      resumeUrl: user.resumeUrl,
+      // Pass other fields if they are still part of the updated interface or remove them
+      // Assuming context handles user mapping if we don't pass them, or we pass what's needed for the backend.
+      // Based on previous context update, backend expects the above fields.
     });
 
     setHasApplied(true);
@@ -149,25 +159,52 @@ export default function JobDetail() {
                       <DialogHeader>
                         <DialogTitle style={{ fontFamily: "var(--font-display)" }}>Apply for {job.title}</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-4 mt-4">
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">Cover Letter</label>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Full Name</label>
+                            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Email</label>
+                            <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Phone</label>
+                            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 234 567 890" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Education</label>
+                            <Input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Highest degree" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Skills (comma separated)</label>
+                          <Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="React, Node.js, TypeScript" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Experience</label>
+                          <Input value={experience} onChange={(e) => setExperience(e.target.value)} placeholder="5 years in Frontend Development" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Cover Letter</label>
                           <Textarea
-                            placeholder="Tell the employer why you're a great fit for this role..."
-                            rows={6}
+                            placeholder="Tell the employer why you're a great fit..."
+                            rows={4}
                             value={coverLetter}
                             onChange={(e) => setCoverLetter(e.target.value)}
-                            data-testid="textarea-cover-letter"
                           />
                         </div>
-                        <Button
-                          className="w-full gradient-primary text-white border-0"
-                          onClick={handleApply}
-                          data-testid="button-submit-application"
-                        >
-                          Submit Application
-                        </Button>
                       </div>
+                      <Button
+                        className="w-full gradient-primary text-white border-0"
+                        onClick={handleApply}
+                        data-testid="button-submit-application"
+                      >
+                        Submit Application
+                      </Button>
                     </DialogContent>
                   </Dialog>
                 )}

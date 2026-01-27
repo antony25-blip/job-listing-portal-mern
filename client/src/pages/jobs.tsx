@@ -143,19 +143,33 @@ export default function Jobs() {
                           {job.type}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {job.location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          {job.salary}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          Posted {job.postedAt}
-                        </span>
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            {job.location}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4" />
+                            {job.salary}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            Posted {job.postedAt}
+                          </span>
+                        </div>
+                        <Button className="gradient-primary text-white border-0 z-10" onClick={(e) => {
+                          e.preventDefault(); // Prevent card link from triggering if nested
+                          // Navigation is handled by key/link wrapper, but explicit button is nice
+                          window.location.href = `/jobs/${job.id}`;
+                          // Or better, use wouter navigate programmatic but we are inside map
+                          // Using a Link component wrapper is usually enough, but user asked for BUTTON.
+                          // Since the whole card is a Link, this button is visual but logically redundant unless we stop propagation.
+                          // But wait, the whole card IS a Link. So clicking anywhere goes to detail.
+                          // The user wants a BUTTON.
+                        }}>
+                          Apply Now
+                        </Button>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-4">
                         {job.requirements.slice(0, 3).map((req, i) => (

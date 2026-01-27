@@ -20,7 +20,7 @@ export default function Applicants() {
   const myJobs = jobs.filter((job) => job.employerId === user?.id || job.company === user?.company);
 
   const allApplicants = myJobs.flatMap((job) =>
-    job.applicants.map((app) => ({
+    (job.applicants || []).map((app) => ({
       ...app,
       jobTitle: job.title,
       jobId: job.id,
@@ -183,6 +183,37 @@ export default function Applicants() {
                                 <div>
                                   <h3 className="text-lg font-semibold">{selectedApplicant.applicantName}</h3>
                                   <p className="text-muted-foreground">{selectedApplicant.applicantEmail}</p>
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                  <div>
+                                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Phone</h4>
+                                    <p>{selectedApplicant.phone || "N/A"}</p>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Education</h4>
+                                    <p>{selectedApplicant.education || "N/A"}</p>
+                                  </div>
+                                </div>
+                                <div className="space-y-4">
+                                  <div>
+                                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Skills</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {selectedApplicant.skills && selectedApplicant.skills.length > 0 ? (
+                                        selectedApplicant.skills.map((skill, i) => (
+                                          <Badge key={i} variant="secondary">{skill}</Badge>
+                                        ))
+                                      ) : (
+                                        <p className="text-sm">No skills listed</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Experience</h4>
+                                    <p className="text-sm">{selectedApplicant.experience || "N/A"}</p>
+                                  </div>
                                 </div>
                               </div>
 

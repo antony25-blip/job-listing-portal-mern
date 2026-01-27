@@ -8,14 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase, Mail, Lock, Building2, User, UserCircle } from "lucide-react";
 import { useAuth, UserRole } from "@/lib/auth-context";
 
+
 export default function Register() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { register, loginWithGoogle } = useAuth();
+  const { register, loginWithGoogle, error } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("jobseeker");
+  const [role, setRole] = useState<UserRole>(null); // Default to null
 
   useEffect(() => {
     const params = new URLSearchParams(searchString);
@@ -25,15 +26,29 @@ export default function Register() {
     }
   }, [searchString]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    register(email, password, name, role);
-    setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+    if (!role) return;
+    try {
+      await register(email, password, name, role);
+      setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+    } catch (error) {
+      // Error is handled by auth context
+    }
   };
 
-  const handleGoogleSignup = () => {
-    loginWithGoogle(role);
-    setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+  const handleGoogleSignup = async () => {
+    if (!role) {
+      // We should ideally show an error or highlight the role selection
+      return;
+    }
+    try {
+      // Note: register doesn't support Google directly unless it's just login
+      await loginWithGoogle(role);
+      setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+    } catch (error) {
+      // Error handled by auth context
+    }
   };
 
   return (
@@ -61,7 +76,7 @@ export default function Register() {
             <CardDescription>Start your journey with JobFlow</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <Tabs value={role || "jobseeker"} className="w-full" onValueChange={(v) => setRole(v as UserRole)}>
+            <Tabs value={role || ""} className="w-full" onValueChange={(v) => setRole(v as UserRole)}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="jobseeker" className="gap-2" data-testid="tab-register-jobseeker">
                   <User className="w-4 h-4" />
@@ -72,6 +87,20 @@ export default function Register() {
                   Employer
                 </TabsTrigger>
               </TabsList>
+
+              {error && (
+                <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md mb-4">
+                  {error}
+                </div>
+              )}
+
+              {/* Show message if no role selected */}
+              {!role && (
+                <div className="text-center text-muted-foreground py-8 border-2 border-dashed rounded-lg mb-4">
+                  <UserCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Please select a role above to continue</p>
+                </div>
+              )}
 
               <TabsContent value="jobseeker">
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -198,6 +227,7 @@ export default function Register() {
               className="w-full gap-2"
               onClick={handleGoogleSignup}
               data-testid="button-google-register"
+              disabled={!role} // Disable Google signup if no role is selected
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path

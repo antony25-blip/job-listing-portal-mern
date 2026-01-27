@@ -16,12 +16,26 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function MyJobs() {
   const { jobs, updateJob, deleteJob } = useJobs();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  const myJobs = jobs.filter((job) => job.employerId === user?.id || job.company === user?.company);
+  if (authLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const myJobs = jobs.filter((job) => {
+    if (!user?.id) return false;
+    // Handle both string ID and object comparison if necessary, though context ensures string
+    return job.employerId === user.id || (typeof job.employerId === 'object' && (job.employerId as any)._id === user.id);
+  });
 
   const handleUpdate = () => {
     if (editingJob) {
@@ -97,7 +111,7 @@ export default function MyJobs() {
                     <div className="flex items-center gap-3">
                       <Badge variant="outline" className="gap-1">
                         <Users className="w-3 h-3" />
-                        {job.applicants.length} applicants
+                        {(job.applicants || []).length} applicants
                       </Badge>
 
                       <Link href={`/jobs/${job.id}`}>
@@ -106,78 +120,9 @@ export default function MyJobs() {
                         </Button>
                       </Link>
 
-                      <Dialog open={editingJob?.id === job.id} onOpenChange={(open) => !open && setEditingJob(null)}>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditingJob(job)} data-testid={`button-edit-${job.id}`}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-lg">
-                          <DialogHeader>
-                            <DialogTitle>Edit Job Posting</DialogTitle>
-                          </DialogHeader>
-                          {editingJob && (
-                            <div className="space-y-4 mt-4">
-                              <div className="space-y-2">
-                                <Label>Job Title</Label>
-                                <Input
-                                  value={editingJob.title}
-                                  onChange={(e) => setEditingJob({ ...editingJob, title: e.target.value })}
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label>Location</Label>
-                                  <Input
-                                    value={editingJob.location}
-                                    onChange={(e) => setEditingJob({ ...editingJob, location: e.target.value })}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>Type</Label>
-                                  <Select
-                                    value={editingJob.type}
-                                    onValueChange={(v: Job["type"]) => setEditingJob({ ...editingJob, type: v })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Full-time">Full-time</SelectItem>
-                                      <SelectItem value="Part-time">Part-time</SelectItem>
-                                      <SelectItem value="Contract">Contract</SelectItem>
-                                      <SelectItem value="Remote">Remote</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Salary Range</Label>
-                                <Input
-                                  value={editingJob.salary}
-                                  onChange={(e) => setEditingJob({ ...editingJob, salary: e.target.value })}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Description</Label>
-                                <Textarea
-                                  rows={4}
-                                  value={editingJob.description}
-                                  onChange={(e) => setEditingJob({ ...editingJob, description: e.target.value })}
-                                />
-                              </div>
-                              <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditingJob(null)}>
-                                  Cancel
-                                </Button>
-                                <Button onClick={handleUpdate} className="gradient-primary text-white border-0">
-                                  Save Changes
-                                </Button>
-                              </DialogFooter>
-                            </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                      <Button variant="ghost" size="icon" onClick={() => setEditingJob(job)} data-testid={`button-edit-${job.id}`}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
 
                       <Dialog open={deleteConfirm === job.id} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
                         <DialogTrigger asChild>
@@ -233,7 +178,77 @@ export default function MyJobs() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </DashboardLayout>
+
+        {/* Edit Dialog - Moved Outside Loop */}
+        <Dialog open={!!editingJob} onOpenChange={(open) => !open && setEditingJob(null)}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Job Posting</DialogTitle>
+            </DialogHeader>
+            {editingJob && (
+              <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Job Title</Label>
+                  <Input
+                    value={editingJob.title || ""}
+                    onChange={(e) => setEditingJob({ ...editingJob, title: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Location</Label>
+                    <Input
+                      value={editingJob.location || ""}
+                      onChange={(e) => setEditingJob({ ...editingJob, location: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Type</Label>
+                    <Select
+                      value={editingJob.type}
+                      onValueChange={(v: Job["type"]) => setEditingJob({ ...editingJob, type: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Full-time">Full-time</SelectItem>
+                        <SelectItem value="Part-time">Part-time</SelectItem>
+                        <SelectItem value="Contract">Contract</SelectItem>
+                        <SelectItem value="Remote">Remote</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Salary Range</Label>
+                  <Input
+                    value={editingJob.salary || ""}
+                    onChange={(e) => setEditingJob({ ...editingJob, salary: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea
+                    rows={4}
+                    value={editingJob.description || ""}
+                    onChange={(e) => setEditingJob({ ...editingJob, description: e.target.value })}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditingJob(null)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpdate} className="gradient-primary text-white border-0">
+                    Save Changes
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+      </div >
+    </DashboardLayout >
   );
 }

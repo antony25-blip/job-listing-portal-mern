@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,13 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Camera, Plus, X, MapPin, Briefcase, Mail, Phone, FileText, Save } from "lucide-react";
+import { Camera, Plus, X, MapPin, Briefcase, Mail, Phone, FileText, Save, Loader2, Upload } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch fresh profile data
+  const { data: profileData, isLoading: isFetching } = useQuery({
+    queryKey: ["/api/profile/jobseeker"],
+    enabled: !!user,
+  });
 
   const [name, setName] = useState(user?.name || "");
   const [title, setTitle] = useState(user?.title || "");
@@ -24,6 +33,20 @@ export default function Profile() {
   const [newSkill, setNewSkill] = useState("");
   const [experience, setExperience] = useState<string[]>(user?.experience || []);
   const [newExperience, setNewExperience] = useState("");
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+  // Update state when profile data is fetched
+  useEffect(() => {
+    if (profileData?.profile) {
+      const p = profileData.profile;
+      setName(p.fullName || user?.name || "");
+      setLocation(p.location || user?.location || "");
+      setPhone(p.phone || user?.phone || "");
+      setSkills(p.skills || user?.skills || []);
+      setExperience(p.experience || user?.experience || []);
+      // Note: title and bio might not be in backend profile model yet, check controller
+    }
+  }, [profileData, user]);
 
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -47,21 +70,79 @@ export default function Profile() {
     setExperience(experience.filter((e) => e !== exp));
   };
 
-  const handleSave = () => {
-    updateProfile({
-      name,
-      title,
-      location,
-      phone,
-      bio,
-      skills,
-      experience,
-    });
-    toast({
-      title: "Profile Updated",
-      description: "Your changes have been saved successfully.",
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setResumeFile(e.target.files[0]);
+    }
   };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const formData = new FormData();
+      formData.append("fullName", name);
+      formData.append("location", location);
+      formData.append("phone", phone);
+      // formData.append("title", title); // Backend might not support yet
+      // formData.append("bio", bio);   // Backend might not support yet
+
+      skills.forEach(s => formData.append("skills", s));
+      experience.forEach(e => formData.append("experience", e));
+
+      if (resumeFile) {
+        formData.append("resume", resumeFile);
+      }
+
+      // Use fetch directly for FormData to avoid Content-Type issues with apiRequest helper if it enforces json
+      const res = await fetch("/api/profile/jobseeker", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("jwtToken")}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save profile");
+      }
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profile/jobseeker"] });
+      // Update local auth context
+      updateProfile({
+        name: data.profile.fullName,
+        location: data.profile.location,
+        phone: data.profile.phone,
+        skills: data.profile.skills,
+        experience: data.profile.experience,
+        resumeUrl: data.profile.resumeUrl
+      });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your changes have been saved successfully.",
+      });
+      setResumeFile(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save profile changes.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  if (isFetching) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -95,20 +176,22 @@ export default function Profile() {
               </div>
               <div className="flex-1 pt-4 sm:pt-0">
                 <h2 className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-                  {user?.name}
+                  {name}
                 </h2>
-                <p className="text-muted-foreground">{user?.title || "Add your job title"}</p>
+                <p className="text-muted-foreground">{title || "Add your job title"}</p>
                 <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
-                  {user?.location && (
+                  {location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
-                      {user.location}
+                      {location}
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Mail className="w-4 h-4" />
-                    {user?.email}
-                  </span>
+                  {user?.email && (
+                    <span className="flex items-center gap-1">
+                      <Mail className="w-4 h-4" />
+                      {user.email}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -206,6 +289,7 @@ export default function Profile() {
                     onClick={() => removeSkill(skill)}
                     className="ml-1 hover:text-destructive"
                     data-testid={`button-remove-skill-${skill}`}
+                    type="button"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -220,7 +304,7 @@ export default function Profile() {
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
                 data-testid="input-new-skill"
               />
-              <Button onClick={addSkill} variant="outline" className="gap-1" data-testid="button-add-skill">
+              <Button onClick={addSkill} variant="outline" className="gap-1" type="button" data-testid="button-add-skill">
                 <Plus className="w-4 h-4" />
                 Add
               </Button>
@@ -253,6 +337,7 @@ export default function Profile() {
                       size="icon"
                       onClick={() => removeExperience(exp)}
                       data-testid={`button-remove-experience-${i}`}
+                      type="button"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -268,7 +353,7 @@ export default function Profile() {
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addExperience())}
                 data-testid="input-new-experience"
               />
-              <Button onClick={addExperience} variant="outline" className="gap-1" data-testid="button-add-experience">
+              <Button onClick={addExperience} variant="outline" className="gap-1" type="button" data-testid="button-add-experience">
                 <Plus className="w-4 h-4" />
                 Add
               </Button>
@@ -285,9 +370,24 @@ export default function Profile() {
           <CardContent>
             <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
               <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="font-medium mb-1">Drop your resume here or click to upload</p>
-              <p className="text-sm text-muted-foreground mb-4">PDF, DOC, or DOCX (max 5MB)</p>
-              <Button variant="outline" data-testid="button-upload-resume">
+              <p className="font-medium mb-1">
+                {resumeFile ? resumeFile.name : (profileData?.profile?.resumeUrl ? "Resume Uploaded (Upload new to replace)" : "Drop your resume here or click to upload")}
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">PDF, DOC, or DOCX (max 2MB)</p>
+              <Input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx"
+              />
+              <Button
+                variant="outline"
+                data-testid="button-upload-resume"
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
+                <Upload className="w-4 h-4 mr-2" />
                 Choose File
               </Button>
             </div>
@@ -296,8 +396,13 @@ export default function Profile() {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button onClick={handleSave} className="gradient-primary text-white border-0 px-8 gap-2" data-testid="button-save-profile">
-            <Save className="w-4 h-4" />
+          <Button
+            onClick={() => saveMutation.mutate()}
+            className="gradient-primary text-white border-0 px-8 gap-2"
+            data-testid="button-save-profile"
+            disabled={saveMutation.isPending}
+          >
+            {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save Changes
           </Button>
         </div>

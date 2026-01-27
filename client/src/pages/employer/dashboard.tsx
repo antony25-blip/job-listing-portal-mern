@@ -12,9 +12,9 @@ export default function EmployerDashboard() {
   const { jobs } = useJobs();
 
   const myJobs = jobs.filter((job) => job.employerId === user?.id || job.company === user?.company);
-  const totalApplicants = myJobs.reduce((sum, job) => sum + job.applicants.length, 0);
+  const totalApplicants = myJobs.reduce((sum, job) => sum + (job.applicants?.length || 0), 0);
   const pendingReview = myJobs.reduce(
-    (sum, job) => sum + job.applicants.filter((a) => a.status === "pending").length,
+    (sum, job) => sum + (job.applicants || []).filter((a) => a.status === "pending").length,
     0
   );
 
@@ -93,7 +93,7 @@ export default function EmployerDashboard() {
                     <div className="flex items-center gap-4">
                       <Badge variant="secondary">
                         <Users className="w-3 h-3 mr-1" />
-                        {job.applicants.length} applicants
+                        {(job.applicants?.length || 0)} applicants
                       </Badge>
                       <Badge variant="outline">{job.salary}</Badge>
                     </div>
@@ -133,7 +133,7 @@ export default function EmployerDashboard() {
               <div className="space-y-4">
                 {myJobs
                   .flatMap((job) =>
-                    job.applicants.map((app) => ({
+                    (job.applicants || []).map((app) => ({
                       ...app,
                       jobTitle: job.title,
                     }))
@@ -160,8 +160,8 @@ export default function EmployerDashboard() {
                           applicant.status === "pending"
                             ? "secondary"
                             : applicant.status === "shortlisted"
-                            ? "default"
-                            : "outline"
+                              ? "default"
+                              : "outline"
                         }
                         className={applicant.status === "shortlisted" ? "gradient-accent text-white border-0" : ""}
                       >

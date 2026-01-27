@@ -15,10 +15,12 @@ import EmployerDashboard from "@/pages/employer/dashboard";
 import PostJob from "@/pages/employer/post-job";
 import MyJobs from "@/pages/employer/my-jobs";
 import Applicants from "@/pages/employer/applicants";
+import EmployerProfile from "@/pages/employer/profile";
 import SeekerDashboard from "@/pages/seeker/dashboard";
 import MyApplications from "@/pages/seeker/applications";
 import Profile from "@/pages/seeker/profile";
 import NotFound from "@/pages/not-found";
+import ProtectedRoute from "@/components/protected-route";
 
 function Router() {
   return (
@@ -26,15 +28,23 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+
+      {/* Public Job Routes */}
       <Route path="/jobs" component={Jobs} />
       <Route path="/jobs/:id" component={JobDetail} />
-      <Route path="/employer/dashboard" component={EmployerDashboard} />
-      <Route path="/employer/post-job" component={PostJob} />
-      <Route path="/employer/jobs" component={MyJobs} />
-      <Route path="/employer/applicants" component={Applicants} />
-      <Route path="/seeker/dashboard" component={SeekerDashboard} />
-      <Route path="/seeker/applications" component={MyApplications} />
-      <Route path="/seeker/profile" component={Profile} />
+
+      {/* Employer Routes */}
+      <ProtectedRoute path="/employer/dashboard" component={EmployerDashboard} allowedRole="employer" />
+      <ProtectedRoute path="/employer/post-job" component={PostJob} allowedRole="employer" />
+      <ProtectedRoute path="/employer/jobs" component={MyJobs} allowedRole="employer" />
+      <ProtectedRoute path="/employer/applicants" component={Applicants} allowedRole="employer" />
+      <ProtectedRoute path="/employer/settings" component={EmployerProfile} allowedRole="employer" />
+
+      {/* Seeker Routes */}
+      <ProtectedRoute path="/seeker/dashboard" component={SeekerDashboard} allowedRole="jobseeker" />
+      <ProtectedRoute path="/seeker/applications" component={MyApplications} allowedRole="jobseeker" />
+      <ProtectedRoute path="/seeker/profile" component={Profile} allowedRole="jobseeker" />
+
       <Route component={NotFound} />
     </Switch>
   );

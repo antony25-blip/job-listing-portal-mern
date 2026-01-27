@@ -42,15 +42,22 @@ export default function PostJob() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Parse salary range "120k - 150k" or "120000"
+    const salaryNumbers = salary.match(/\d+/g)?.map(Number) || [0, 0];
+    const salaryMin = salaryNumbers[0] || 0;
+    const salaryMax = salaryNumbers[1] || salaryMin;
+
     addJob({
       title,
       company: user?.company || user?.name || "My Company",
       companyLogo: `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.email}`,
       location,
-      type,
-      salary,
+      jobType: type, // Map type to jobType
+      salaryMin, // Add parsed salaries
+      salaryMax,
       description,
-      requirements: requirements.filter((r) => r.trim() !== ""),
+      qualifications: requirements.filter((r) => r.trim() !== ""), // Map requirements to qualifications
+      responsibilities: ["Responsibilities to be added"], // Backend requires this field, need a dummy or UI input
       employerId: user?.id || "",
     });
 

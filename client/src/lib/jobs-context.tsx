@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { apiRequest } from "./queryClient";
 
 export interface Job {
   id: string;
@@ -6,10 +7,15 @@ export interface Job {
   company: string;
   companyLogo?: string;
   location: string;
-  type: "Full-time" | "Part-time" | "Contract" | "Remote";
-  salary: string;
+  type: "Full-time" | "Part-time" | "Contract" | "Remote"; // Frontend legacy property
+  jobType?: "Full-time" | "Part-time" | "Contract" | "Remote"; // Backend property
+  salary: string; // Frontend legacy property
+  salaryMin?: number; // Backend property
+  salaryMax?: number; // Backend property
   description: string;
-  requirements: string[];
+  requirements: string[]; // Frontend naming (sometimes mapped from qualifications)
+  qualifications?: string[]; // Backend property
+  responsibilities?: string[]; // Backend property
   postedAt: string;
   employerId: string;
   applicants: Application[];
@@ -19,175 +25,189 @@ export interface Application {
   id: string;
   jobId: string;
   applicantId: string;
-  applicantName: string;
-  applicantEmail: string;
-  applicantAvatar?: string;
-  resumeUrl?: string;
+  // New detailed fields
+  fullName: string;
+  email: string;
+  phone: string;
+  skills: string[];
+  experience: string;
+  education: string;
   coverLetter: string;
+  resume?: string; // Changed from resumeUrl to match backend
+  // Legacy/computed fields (optional or derived)
+  applicantName?: string;
+  applicantEmail?: string;
+  applicantAvatar?: string;
+
   appliedAt: string;
   status: "pending" | "reviewed" | "shortlisted" | "rejected";
 }
 
 interface JobsContextType {
   jobs: Job[];
-  addJob: (job: Omit<Job, "id" | "postedAt" | "applicants">) => void;
-  updateJob: (id: string, updates: Partial<Job>) => void;
+  addJob: (job: any) => Promise<void>; // Relaxed type to allow backend fields
+  updateJob: (id: string, updates: Partial<Job>) => Promise<void>;
   deleteJob: (id: string) => void;
-  applyToJob: (jobId: string, application: Omit<Application, "id" | "appliedAt" | "status">) => void;
-  updateApplicationStatus: (jobId: string, applicationId: string, status: Application["status"]) => void;
+  applyToJob: (jobId: string, application: Omit<Application, "id" | "appliedAt" | "status" | "applicantId" | "jobId">) => Promise<boolean | void>;
+  updateApplicationStatus: (jobId: string, applicationId: string, status: Application["status"]) => Promise<void>;
   getJobsByEmployer: (employerId: string) => Job[];
   getApplicationsByJobSeeker: (applicantId: string) => { job: Job; application: Application }[];
 }
 
-const initialJobs: Job[] = [
-  {
-    id: "1",
-    title: "Senior Frontend Developer",
-    company: "TechCorp Inc.",
-    companyLogo: "https://api.dicebear.com/7.x/identicon/svg?seed=techcorp",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$120k - $160k",
-    description: "We're looking for a skilled frontend developer to join our team and help build amazing user experiences.",
-    requirements: ["5+ years React experience", "TypeScript proficiency", "Strong CSS skills", "Team leadership experience"],
-    postedAt: "2024-01-15",
-    employerId: "emp1",
-    applicants: [
-      {
-        id: "app1",
-        jobId: "1",
-        applicantId: "seek1",
-        applicantName: "John Doe",
-        applicantEmail: "john@email.com",
-        applicantAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=john",
-        coverLetter: "I'm excited to apply for this position...",
-        appliedAt: "2024-01-16",
-        status: "pending",
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Backend Engineer",
-    company: "StartupXYZ",
-    companyLogo: "https://api.dicebear.com/7.x/identicon/svg?seed=startupxyz",
-    location: "Remote",
-    type: "Remote",
-    salary: "$100k - $140k",
-    description: "Join our growing team to build scalable backend systems.",
-    requirements: ["Node.js expertise", "Database design", "API development", "Cloud services (AWS/GCP)"],
-    postedAt: "2024-01-14",
-    employerId: "emp2",
-    applicants: [],
-  },
-  {
-    id: "3",
-    title: "UI/UX Designer",
-    company: "DesignHub",
-    companyLogo: "https://api.dicebear.com/7.x/identicon/svg?seed=designhub",
-    location: "New York, NY",
-    type: "Full-time",
-    salary: "$90k - $120k",
-    description: "Create beautiful and intuitive user interfaces for our products.",
-    requirements: ["Figma mastery", "User research experience", "Design system knowledge", "Prototyping skills"],
-    postedAt: "2024-01-13",
-    employerId: "emp3",
-    applicants: [],
-  },
-  {
-    id: "4",
-    title: "DevOps Engineer",
-    company: "CloudScale",
-    companyLogo: "https://api.dicebear.com/7.x/identicon/svg?seed=cloudscale",
-    location: "Austin, TX",
-    type: "Full-time",
-    salary: "$130k - $170k",
-    description: "Build and maintain our cloud infrastructure and CI/CD pipelines.",
-    requirements: ["Kubernetes", "Terraform", "CI/CD experience", "Monitoring & logging"],
-    postedAt: "2024-01-12",
-    employerId: "emp4",
-    applicants: [],
-  },
-  {
-    id: "5",
-    title: "Product Manager",
-    company: "InnovateTech",
-    companyLogo: "https://api.dicebear.com/7.x/identicon/svg?seed=innovatetech",
-    location: "Seattle, WA",
-    type: "Full-time",
-    salary: "$140k - $180k",
-    description: "Lead product strategy and work with cross-functional teams.",
-    requirements: ["5+ years PM experience", "Technical background", "Agile methodology", "Data-driven decisions"],
-    postedAt: "2024-01-11",
-    employerId: "emp5",
-    applicants: [],
-  },
-  {
-    id: "6",
-    title: "Data Scientist",
-    company: "DataDriven Co.",
-    companyLogo: "https://api.dicebear.com/7.x/identicon/svg?seed=datadriven",
-    location: "Boston, MA",
-    type: "Contract",
-    salary: "$150k - $200k",
-    description: "Apply machine learning to solve complex business problems.",
-    requirements: ["Python/R proficiency", "ML frameworks", "Statistical analysis", "PhD preferred"],
-    postedAt: "2024-01-10",
-    employerId: "emp6",
-    applicants: [],
-  },
-];
+const initialJobs: Job[] = [];
 
 const JobsContext = createContext<JobsContextType | undefined>(undefined);
 
-export function JobsProvider({ children }: { children: ReactNode }) {
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+// Helper to map backend job to frontend interface
+const mapBackendToFrontendJob = (backendJob: any): Job => {
+  return {
+    ...backendJob,
+    id: backendJob._id || backendJob.id,
+    employerId: typeof backendJob.employerId === 'object' ? backendJob.employerId._id : backendJob.employerId, // Handle populated field
+    type: backendJob.jobType || backendJob.type || "Full-time", // Fallback or map
+    salary: backendJob.salaryMin && backendJob.salaryMax
+      ? `$${(backendJob.salaryMin / 1000).toFixed(0)}k - $${(backendJob.salaryMax / 1000).toFixed(0)}k`
+      : (backendJob.salary || "Competitive"),
+    requirements: backendJob.qualifications || backendJob.requirements || [],
+    postedAt: backendJob.createdAt ? new Date(backendJob.createdAt).toLocaleDateString() : (backendJob.postedAt || "Recently"),
+    applicants: backendJob.applicants || [],
+    jobType: backendJob.jobType, // Keep original
+    salaryMin: backendJob.salaryMin,
+    salaryMax: backendJob.salaryMax
+  };
+};
 
-  const addJob = (job: Omit<Job, "id" | "postedAt" | "applicants">) => {
-    const newJob: Job = {
-      ...job,
-      id: Date.now().toString(),
-      postedAt: new Date().toISOString().split("T")[0],
-      applicants: [],
-    };
-    setJobs([newJob, ...jobs]);
+export function JobsProvider({ children }: { children: ReactNode }) {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const res = await apiRequest("GET", "/api/jobs");
+      const data = await res.json();
+      let allJobs: Job[] = [];
+
+      if (data.jobs) {
+        allJobs = data.jobs.map(mapBackendToFrontendJob);
+      }
+
+      // If user is logged in, try to fetch "my-jobs" to get applicant details (employer only)
+      const token = localStorage.getItem('jwtToken');
+      if (token) {
+        try {
+          const resMy = await apiRequest("GET", "/api/jobs/my-jobs");
+          if (resMy.ok) {
+            const myData = await resMy.json();
+            if (myData.success && myData.jobs) {
+              const myJobsDetailed = myData.jobs.map(mapBackendToFrontendJob);
+              // Create a map of updated jobs
+              const myJobsMap = new Map(myJobsDetailed.map((j: Job) => [j.id, j]));
+
+              // Update existing jobs or add new ones (though they should be in public list usually)
+              allJobs = allJobs.map(j => myJobsMap.has(j.id) ? myJobsMap.get(j.id)! : j);
+
+              // Add any myJobs that weren't in public list (e.g. if filtering applied to public list)
+              const allJobIds = new Set(allJobs.map(j => j.id));
+              myJobsDetailed.forEach((j: Job) => {
+                if (!allJobIds.has(j.id)) {
+                  allJobs.push(j);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          // Ignore error (e.g. 403 if not employer)
+        }
+      }
+
+      setJobs(allJobs);
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateJob = (id: string, updates: Partial<Job>) => {
-    setJobs(jobs.map((job) => (job.id === id ? { ...job, ...updates } : job)));
+  const addJob = async (job: any) => {
+    try {
+      const res = await apiRequest("POST", "/api/jobs", job);
+      const data = await res.json();
+      if (data.success && data.job) {
+        // Ensure applicants is initialized and map fields
+        const newJob = mapBackendToFrontendJob(data.job);
+        newJob.applicants = []; // Initialize empty for new job
+        setJobs([newJob, ...jobs]);
+      }
+    } catch (error) {
+      console.error("Failed to add job:", error);
+    }
+  };
+
+  const updateJob = async (id: string, updates: Partial<Job>) => {
+    try {
+      const res = await apiRequest("PUT", `/api/jobs/${id}`, updates);
+      const data = await res.json();
+      if (data.success && data.job) {
+        // Preserve existing applicants if backend doesn't return them populated
+        const updatedJobBase = mapBackendToFrontendJob(data.job);
+        setJobs(jobs.map((job) => (job.id === id ? { ...updatedJobBase, applicants: job.applicants || [] } : job)));
+      }
+    } catch (error) {
+      console.error("Failed to update job:", error);
+    }
   };
 
   const deleteJob = (id: string) => {
+    // TODO: Implement API Endpoint
     setJobs(jobs.filter((job) => job.id !== id));
   };
 
-  const applyToJob = (jobId: string, application: Omit<Application, "id" | "appliedAt" | "status">) => {
-    const newApplication: Application = {
-      ...application,
-      id: Date.now().toString(),
-      appliedAt: new Date().toISOString().split("T")[0],
-      status: "pending",
-    };
-    setJobs(
-      jobs.map((job) =>
-        job.id === jobId ? { ...job, applicants: [...job.applicants, newApplication] } : job
-      )
-    );
+  const applyToJob = async (jobId: string, application: Omit<Application, "id" | "appliedAt" | "status" | "applicantId" | "jobId">) => {
+    try {
+      const res = await apiRequest("POST", "/api/applications/apply", {
+        jobId,
+        ...application
+      });
+      const data = await res.json();
+
+      if (data.application) {
+        // Refetch jobs to ensure data consistency
+        await fetchJobs();
+        return true;
+      }
+    } catch (error) {
+      console.error("Failed to apply:", error);
+      throw error;
+    }
   };
 
-  const updateApplicationStatus = (jobId: string, applicationId: string, status: Application["status"]) => {
-    setJobs(
-      jobs.map((job) =>
-        job.id === jobId
-          ? {
-              ...job,
-              applicants: job.applicants.map((app) =>
-                app.id === applicationId ? { ...app, status } : app
-              ),
-            }
-          : job
-      )
-    );
+  const updateApplicationStatus = async (jobId: string, applicationId: string, status: Application["status"]) => {
+    try {
+      const res = await apiRequest("PUT", `/api/applications/${applicationId}/status`, { status });
+      const data = await res.json();
+
+      if (data.application) {
+        setJobs(
+          jobs.map((job) =>
+            job.id === jobId
+              ? {
+                ...job,
+                applicants: job.applicants.map((app) =>
+                  app.id === applicationId ? { ...app, status } : app
+                ),
+              }
+              : job
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      throw error;
+    }
   };
 
   const getJobsByEmployer = (employerId: string) => {
@@ -197,7 +217,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const getApplicationsByJobSeeker = (applicantId: string) => {
     const results: { job: Job; application: Application }[] = [];
     jobs.forEach((job) => {
-      job.applicants.forEach((app) => {
+      (job.applicants || []).forEach((app) => { // Fixed: Safe access for applicants
         if (app.applicantId === applicantId) {
           results.push({ job, application: app });
         }
