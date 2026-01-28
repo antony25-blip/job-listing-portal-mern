@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,7 @@ export default function EmployerDashboard() {
             </h1>
             <p className="text-muted-foreground mt-1">Manage your job postings and review applicants</p>
           </div>
-          <Link href="/employer/post-job">
+          <Link to="/employer/post-job">
             <Button className="gradient-primary text-white border-0 gap-2" data-testid="button-post-new-job">
               <Plus className="w-5 h-5" />
               Post New Job
@@ -69,7 +69,7 @@ export default function EmployerDashboard() {
         <Card className="animate-slide-up" style={{ animationDelay: "0.4s" }}>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle style={{ fontFamily: "var(--font-display)" }}>Recent Job Postings</CardTitle>
-            <Link href="/employer/jobs">
+            <Link to="/employer/jobs">
               <Button variant="ghost" className="gap-2">
                 View All <ArrowRight className="w-4 h-4" />
               </Button>
@@ -107,7 +107,7 @@ export default function EmployerDashboard() {
                 </div>
                 <h3 className="font-semibold mb-2">No jobs posted yet</h3>
                 <p className="text-muted-foreground mb-4">Start attracting talent by posting your first job</p>
-                <Link href="/employer/post-job">
+                <Link to="/employer/post-job">
                   <Button className="gradient-primary text-white border-0">
                     <Plus className="w-4 h-4 mr-2" />
                     Post Your First Job
@@ -122,7 +122,7 @@ export default function EmployerDashboard() {
         <Card className="animate-slide-up" style={{ animationDelay: "0.5s" }}>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle style={{ fontFamily: "var(--font-display)" }}>Recent Applicants</CardTitle>
-            <Link href="/employer/applicants">
+            <Link to="/employer/applicants">
               <Button variant="ghost" className="gap-2">
                 View All <ArrowRight className="w-4 h-4" />
               </Button>

@@ -1,42 +1,35 @@
 import { useAuth, UserRole } from "@/lib/auth-context";
 import { Loader2 } from "lucide-react";
-import { Redirect, Route, Switch } from "wouter";
+import { Navigate } from "react-router-dom";
+import { ReactNode } from "react";
 
 interface ProtectedRouteProps {
-    component: React.ComponentType<any>;
-    path: string;
+    children: ReactNode;
     allowedRole?: UserRole;
 }
 
 export default function ProtectedRoute({
-    component: Component,
-    path,
+    children,
     allowedRole,
 }: ProtectedRouteProps) {
     const { user, isLoading } = useAuth();
 
-    return (
-        <Route path={path}>
-            {(params) => {
-                if (isLoading) {
-                    return (
-                        <div className="flex justify-center items-center h-screen">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                        </div>
-                    );
-                }
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
-                if (!user) {
-                    return <Redirect to="/login" />;
-                }
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
 
-                if (allowedRole && user.role !== allowedRole) {
-                    // Redirect to appropriate dashboard if role mismatch
-                    return <Redirect to={user.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard"} />;
-                }
+    if (allowedRole && user.role !== allowedRole) {
+        // Redirect to appropriate dashboard if role mismatch
+        return <Navigate to={user.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard"} replace />;
+    }
 
-                return <Component {...params} />;
-            }}
-        </Route>
-    );
+    return <>{children}</>;
 }

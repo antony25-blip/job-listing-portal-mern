@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useSearch } from "wouter";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +10,8 @@ import { useAuth, UserRole } from "@/lib/auth-context";
 
 
 export default function Register() {
-  const [, setLocation] = useLocation();
-  const searchString = useSearch();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register, loginWithGoogle, error } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,19 +19,18 @@ export default function Register() {
   const [role, setRole] = useState<UserRole>(null); // Default to null
 
   useEffect(() => {
-    const params = new URLSearchParams(searchString);
-    const roleParam = params.get("role");
+    const roleParam = searchParams.get("role");
     if (roleParam === "employer" || roleParam === "jobseeker") {
-      setRole(roleParam);
+      setRole(roleParam as UserRole);
     }
-  }, [searchString]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!role) return;
     try {
       await register(email, password, name, role);
-      setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+      navigate(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
     } catch (error) {
       // Error is handled by auth context
     }
@@ -45,7 +44,7 @@ export default function Register() {
     try {
       // Note: register doesn't support Google directly unless it's just login
       await loginWithGoogle(role);
-      setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+      navigate(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
     } catch (error) {
       // Error handled by auth context
     }
@@ -59,7 +58,7 @@ export default function Register() {
       </div>
 
       <div className="relative w-full max-w-md animate-slide-up">
-        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
+        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
             <Briefcase className="w-6 h-6 text-white" />
           </div>
@@ -252,7 +251,7 @@ export default function Register() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline font-medium" data-testid="link-login">
+              <Link to="/login" className="text-primary hover:underline font-medium" data-testid="link-login">
                 Sign in
               </Link>
             </p>

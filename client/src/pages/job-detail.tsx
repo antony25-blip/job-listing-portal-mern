@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams, useLocation } from "wouter";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function JobDetail() {
   const params = useParams<{ id: string }>();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { jobs, applyToJob } = useJobs();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -34,7 +34,7 @@ export default function JobDetail() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Job not found</h1>
-          <Link href="/jobs">
+          <Link to="/jobs">
             <Button>Back to Jobs</Button>
           </Link>
         </div>
@@ -46,7 +46,7 @@ export default function JobDetail() {
 
   const handleApply = () => {
     if (!user) {
-      setLocation("/login");
+      navigate("/login");
       return;
     }
 
@@ -58,9 +58,6 @@ export default function JobDetail() {
       experience,
       education,
       coverLetter,
-      // Pass other fields if they are still part of the updated interface or remove them
-      // Assuming context handles user mapping if we don't pass them, or we pass what's needed for the backend.
-      // Based on previous context update, backend expects the above fields.
     });
 
     setHasApplied(true);
@@ -77,7 +74,7 @@ export default function JobDetail() {
       <nav className="sticky top-0 z-50 bg-card border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
@@ -87,7 +84,7 @@ export default function JobDetail() {
             </Link>
             <div className="flex items-center gap-3">
               {isAuthenticated && user?.role === "jobseeker" && (
-                <Link href="/seeker/dashboard">
+                <Link to="/seeker/dashboard">
                   <Button variant="ghost" data-testid="button-my-dashboard">My Dashboard</Button>
                 </Link>
               )}
@@ -97,7 +94,7 @@ export default function JobDetail() {
       </nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/jobs" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
+        <Link to="/jobs" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Jobs
         </Link>
@@ -217,7 +214,7 @@ export default function JobDetail() {
                 )}
 
                 {!isAuthenticated && (
-                  <Link href="/login">
+                  <Link to="/login">
                     <Button size="lg" className="gradient-primary text-white border-0 px-8">
                       Sign in to Apply
                     </Button>

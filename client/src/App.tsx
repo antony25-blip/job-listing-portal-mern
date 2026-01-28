@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { BrowserRouter, Routes, Route as RouteDom } from "react-router-dom";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,29 +24,31 @@ import ProtectedRoute from "@/components/protected-route";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+    <BrowserRouter>
+      <Routes>
+        <RouteDom path="/" element={<Home />} />
+        <RouteDom path="/login" element={<Login />} />
+        <RouteDom path="/register" element={<Register />} />
 
-      {/* Public Job Routes */}
-      <Route path="/jobs" component={Jobs} />
-      <Route path="/jobs/:id" component={JobDetail} />
+        {/* Public Job Routes */}
+        <RouteDom path="/jobs" element={<Jobs />} />
+        <RouteDom path="/jobs/:id" element={<JobDetail />} />
 
-      {/* Employer Routes */}
-      <ProtectedRoute path="/employer/dashboard" component={EmployerDashboard} allowedRole="employer" />
-      <ProtectedRoute path="/employer/post-job" component={PostJob} allowedRole="employer" />
-      <ProtectedRoute path="/employer/jobs" component={MyJobs} allowedRole="employer" />
-      <ProtectedRoute path="/employer/applicants" component={Applicants} allowedRole="employer" />
-      <ProtectedRoute path="/employer/settings" component={EmployerProfile} allowedRole="employer" />
+        {/* Employer Routes */}
+        <RouteDom path="/employer/dashboard" element={<ProtectedRoute allowedRole="employer"><EmployerDashboard /></ProtectedRoute>} />
+        <RouteDom path="/employer/post-job" element={<ProtectedRoute allowedRole="employer"><PostJob /></ProtectedRoute>} />
+        <RouteDom path="/employer/jobs" element={<ProtectedRoute allowedRole="employer"><MyJobs /></ProtectedRoute>} />
+        <RouteDom path="/employer/applicants" element={<ProtectedRoute allowedRole="employer"><Applicants /></ProtectedRoute>} />
+        <RouteDom path="/employer/settings" element={<ProtectedRoute allowedRole="employer"><EmployerProfile /></ProtectedRoute>} />
 
-      {/* Seeker Routes */}
-      <ProtectedRoute path="/seeker/dashboard" component={SeekerDashboard} allowedRole="jobseeker" />
-      <ProtectedRoute path="/seeker/applications" component={MyApplications} allowedRole="jobseeker" />
-      <ProtectedRoute path="/seeker/profile" component={Profile} allowedRole="jobseeker" />
+        {/* Seeker Routes */}
+        <RouteDom path="/seeker/dashboard" element={<ProtectedRoute allowedRole="jobseeker"><SeekerDashboard /></ProtectedRoute>} />
+        <RouteDom path="/seeker/applications" element={<ProtectedRoute allowedRole="jobseeker"><MyApplications /></ProtectedRoute>} />
+        <RouteDom path="/seeker/profile" element={<ProtectedRoute allowedRole="jobseeker"><Profile /></ProtectedRoute>} />
 
-      <Route component={NotFound} />
-    </Switch>
+        <RouteDom path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

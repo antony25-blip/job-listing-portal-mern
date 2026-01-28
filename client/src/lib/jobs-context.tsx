@@ -54,194 +54,169 @@ interface JobsContextType {
   getApplicationsByJobSeeker: (applicantId: string) => { job: Job; application: Application }[];
 }
 
-const initialJobs: Job[] = [];
+const [jobs, setJobs] = useState<Job[]>([]);
 
-const JobsContext = createContext<JobsContextType | undefined>(undefined);
+useEffect(() => {
+  fetchJobs();
+}, []);
 
-// Helper to map backend job to frontend interface
-const mapBackendToFrontendJob = (backendJob: any): Job => {
-  return {
-    ...backendJob,
-    id: backendJob._id || backendJob.id,
-    employerId: typeof backendJob.employerId === 'object' ? backendJob.employerId._id : backendJob.employerId, // Handle populated field
-    type: backendJob.jobType || backendJob.type || "Full-time", // Fallback or map
-    salary: backendJob.salaryMin && backendJob.salaryMax
-      ? `$${(backendJob.salaryMin / 1000).toFixed(0)}k - $${(backendJob.salaryMax / 1000).toFixed(0)}k`
-      : (backendJob.salary || "Competitive"),
-    requirements: backendJob.qualifications || backendJob.requirements || [],
-    postedAt: backendJob.createdAt ? new Date(backendJob.createdAt).toLocaleDateString() : (backendJob.postedAt || "Recently"),
-    applicants: backendJob.applicants || [],
-    jobType: backendJob.jobType, // Keep original
-    salaryMin: backendJob.salaryMin,
-    salaryMax: backendJob.salaryMax
-  };
+const fetchJobs = async () => {
+  try {
+    const res = await apiRequest("GET", "/api/jobs");
+    const data = await res.json();
+    let allJobs: Job[] = [];
+
+    if (data.jobs) {
+      allJobs = data.jobs.map(mapBackendToFrontendJob);
+    }
+
+    // If user is logged in, try to fetch "my-jobs" to get applicant details (employer only)
+    const token = localStorage.getItem('jwtToken');
+    if (token) {
+      try {
+        const resMy = await apiRequest("GET", "/api/jobs/my-jobs");
+        if (resMy.ok) {
+          const myData = await resMy.json();
+          if (myData.success && myData.jobs) {
+            const myJobsDetailed = myData.jobs.map(mapBackendToFrontendJob);
+            // Create a map of updated jobs
+            const myJobsMap = new Map<string, Job>(myJobsDetailed.map((j: Job) => [j.id, j]));
+
+            // Update existing jobs or add new ones (though they should be in public list usually)
+            allJobs = allJobs.map(j => myJobsMap.has(j.id) ? myJobsMap.get(j.id)! : j);
+
+            // Add any myJobs that weren't in public list (e.g. if filtering applied to public list)
+            const allJobIds = new Set(allJobs.map(j => j.id));
+            myJobsDetailed.forEach((j: Job) => {
+              if (!allJobIds.has(j.id)) {
+                allJobs.push(j);
+              }
+            });
+          }
+        }
+      } catch (e) {
+        // Ignore error (e.g. 403 if not employer)
+      }
+    }
+
+    setJobs(allJobs);
+  } catch (error) {
+    console.error("Failed to fetch jobs:", error);
+  } finally {
+    setIsLoading(false);
+  }
 };
 
-export function JobsProvider({ children }: { children: ReactNode }) {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  const fetchJobs = async () => {
-    try {
-      const res = await apiRequest("GET", "/api/jobs");
-      const data = await res.json();
-      let allJobs: Job[] = [];
-
-      if (data.jobs) {
-        allJobs = data.jobs.map(mapBackendToFrontendJob);
-      }
-
-      // If user is logged in, try to fetch "my-jobs" to get applicant details (employer only)
-      const token = localStorage.getItem('jwtToken');
-      if (token) {
-        try {
-          const resMy = await apiRequest("GET", "/api/jobs/my-jobs");
-          if (resMy.ok) {
-            const myData = await resMy.json();
-            if (myData.success && myData.jobs) {
-              const myJobsDetailed = myData.jobs.map(mapBackendToFrontendJob);
-              // Create a map of updated jobs
-              const myJobsMap = new Map(myJobsDetailed.map((j: Job) => [j.id, j]));
-
-              // Update existing jobs or add new ones (though they should be in public list usually)
-              allJobs = allJobs.map(j => myJobsMap.has(j.id) ? myJobsMap.get(j.id)! : j);
-
-              // Add any myJobs that weren't in public list (e.g. if filtering applied to public list)
-              const allJobIds = new Set(allJobs.map(j => j.id));
-              myJobsDetailed.forEach((j: Job) => {
-                if (!allJobIds.has(j.id)) {
-                  allJobs.push(j);
-                }
-              });
-            }
-          }
-        } catch (e) {
-          // Ignore error (e.g. 403 if not employer)
-        }
-      }
-
-      setJobs(allJobs);
-    } catch (error) {
-      console.error("Failed to fetch jobs:", error);
-    } finally {
-      setIsLoading(false);
+const addJob = async (job: any) => {
+  try {
+    const res = await apiRequest("POST", "/api/jobs", job);
+    const data = await res.json();
+    if (data.success && data.job) {
+      // Ensure applicants is initialized and map fields
+      const newJob = mapBackendToFrontendJob(data.job);
+      newJob.applicants = []; // Initialize empty for new job
+      setJobs([newJob, ...jobs]);
     }
-  };
+  } catch (error) {
+    console.error("Failed to add job:", error);
+  }
+};
 
-  const addJob = async (job: any) => {
-    try {
-      const res = await apiRequest("POST", "/api/jobs", job);
-      const data = await res.json();
-      if (data.success && data.job) {
-        // Ensure applicants is initialized and map fields
-        const newJob = mapBackendToFrontendJob(data.job);
-        newJob.applicants = []; // Initialize empty for new job
-        setJobs([newJob, ...jobs]);
-      }
-    } catch (error) {
-      console.error("Failed to add job:", error);
+const updateJob = async (id: string, updates: Partial<Job>) => {
+  try {
+    const res = await apiRequest("PUT", `/api/jobs/${id}`, updates);
+    const data = await res.json();
+    if (data.success && data.job) {
+      // Preserve existing applicants if backend doesn't return them populated
+      const updatedJobBase = mapBackendToFrontendJob(data.job);
+      setJobs(jobs.map((job) => (job.id === id ? { ...updatedJobBase, applicants: job.applicants || [] } : job)));
     }
-  };
+  } catch (error) {
+    console.error("Failed to update job:", error);
+  }
+};
 
-  const updateJob = async (id: string, updates: Partial<Job>) => {
-    try {
-      const res = await apiRequest("PUT", `/api/jobs/${id}`, updates);
-      const data = await res.json();
-      if (data.success && data.job) {
-        // Preserve existing applicants if backend doesn't return them populated
-        const updatedJobBase = mapBackendToFrontendJob(data.job);
-        setJobs(jobs.map((job) => (job.id === id ? { ...updatedJobBase, applicants: job.applicants || [] } : job)));
-      }
-    } catch (error) {
-      console.error("Failed to update job:", error);
-    }
-  };
+const deleteJob = (id: string) => {
+  // TODO: Implement API Endpoint
+  setJobs(jobs.filter((job) => job.id !== id));
+};
 
-  const deleteJob = (id: string) => {
-    // TODO: Implement API Endpoint
-    setJobs(jobs.filter((job) => job.id !== id));
-  };
-
-  const applyToJob = async (jobId: string, application: Omit<Application, "id" | "appliedAt" | "status" | "applicantId" | "jobId">) => {
-    try {
-      const res = await apiRequest("POST", "/api/applications/apply", {
-        jobId,
-        ...application
-      });
-      const data = await res.json();
-
-      if (data.application) {
-        // Refetch jobs to ensure data consistency
-        await fetchJobs();
-        return true;
-      }
-    } catch (error) {
-      console.error("Failed to apply:", error);
-      throw error;
-    }
-  };
-
-  const updateApplicationStatus = async (jobId: string, applicationId: string, status: Application["status"]) => {
-    try {
-      const res = await apiRequest("PUT", `/api/applications/${applicationId}/status`, { status });
-      const data = await res.json();
-
-      if (data.application) {
-        setJobs(
-          jobs.map((job) =>
-            job.id === jobId
-              ? {
-                ...job,
-                applicants: job.applicants.map((app) =>
-                  app.id === applicationId ? { ...app, status } : app
-                ),
-              }
-              : job
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      throw error;
-    }
-  };
-
-  const getJobsByEmployer = (employerId: string) => {
-    return jobs.filter((job) => job.employerId === employerId);
-  };
-
-  const getApplicationsByJobSeeker = (applicantId: string) => {
-    const results: { job: Job; application: Application }[] = [];
-    jobs.forEach((job) => {
-      (job.applicants || []).forEach((app) => { // Fixed: Safe access for applicants
-        if (app.applicantId === applicantId) {
-          results.push({ job, application: app });
-        }
-      });
+const applyToJob = async (jobId: string, application: Omit<Application, "id" | "appliedAt" | "status" | "applicantId" | "jobId">) => {
+  try {
+    const res = await apiRequest("POST", "/api/applications/apply", {
+      jobId,
+      ...application
     });
-    return results;
-  };
+    const data = await res.json();
 
-  return (
-    <JobsContext.Provider
-      value={{
-        jobs,
-        addJob,
-        updateJob,
-        deleteJob,
-        applyToJob,
-        updateApplicationStatus,
-        getJobsByEmployer,
-        getApplicationsByJobSeeker,
-      }}
-    >
-      {children}
-    </JobsContext.Provider>
-  );
+    if (data.application) {
+      // Refetch jobs to ensure data consistency
+      await fetchJobs();
+      return true;
+    }
+  } catch (error) {
+    console.error("Failed to apply:", error);
+    throw error;
+  }
+};
+
+const updateApplicationStatus = async (jobId: string, applicationId: string, status: Application["status"]) => {
+  try {
+    const res = await apiRequest("PUT", `/api/applications/${applicationId}/status`, { status });
+    const data = await res.json();
+
+    if (data.application) {
+      setJobs(
+        jobs.map((job) =>
+          job.id === jobId
+            ? {
+              ...job,
+              applicants: job.applicants.map((app) =>
+                app.id === applicationId ? { ...app, status } : app
+              ),
+            }
+            : job
+        )
+      );
+    }
+  } catch (error) {
+    console.error("Failed to update status:", error);
+    throw error;
+  }
+};
+
+const getJobsByEmployer = (employerId: string) => {
+  return jobs.filter((job) => job.employerId === employerId);
+};
+
+const getApplicationsByJobSeeker = (applicantId: string) => {
+  const results: { job: Job; application: Application }[] = [];
+  jobs.forEach((job) => {
+    (job.applicants || []).forEach((app) => { // Fixed: Safe access for applicants
+      if (app.applicantId === applicantId) {
+        results.push({ job, application: app });
+      }
+    });
+  });
+  return results;
+};
+
+return (
+  <JobsContext.Provider
+    value={{
+      jobs,
+      addJob,
+      updateJob,
+      deleteJob,
+      applyToJob,
+      updateApplicationStatus,
+      getJobsByEmployer,
+      getApplicationsByJobSeeker,
+    }}
+  >
+    {children}
+  </JobsContext.Provider>
+);
 }
 
 export function useJobs() {

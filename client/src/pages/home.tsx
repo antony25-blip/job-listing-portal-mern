@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Users, Building2, Search, ArrowRight, Star, CheckCircle } from "lucide-react";
@@ -10,7 +10,7 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
@@ -19,18 +19,18 @@ export default function Home() {
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
-              <Link href="/jobs" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-browse-jobs">
+              <Link to="/jobs" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-browse-jobs">
                 Browse Jobs
               </Link>
-              <Link href="/employers" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/employers" className="text-muted-foreground hover:text-foreground transition-colors">
                 For Employers
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login">
+              <Link to="/login">
                 <Button variant="ghost" data-testid="button-login">Sign In</Button>
               </Link>
-              <Link href="/register">
+              <Link to="/register">
                 <Button className="gradient-primary text-white border-0" data-testid="button-register">
                   Get Started
                 </Button>
@@ -61,14 +61,14 @@ export default function Home() {
               Connect with the best opportunities and candidates. Whether you're looking to advance your career or build your team, JobFlow makes it seamless.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register?role=jobseeker">
+              <Link to="/register?role=jobseeker">
                 <Button size="lg" className="gradient-primary text-white border-0 px-8 py-6 text-lg" data-testid="button-find-jobs">
                   <Search className="w-5 h-5 mr-2" />
                   Find Jobs
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Link href="/register?role=employer">
+              <Link to="/register?role=employer">
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg" data-testid="button-post-job">
                   <Building2 className="w-5 h-5 mr-2" />
                   Post a Job
@@ -173,12 +173,12 @@ export default function Home() {
             Join thousands of professionals who've found their perfect match on JobFlow.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register?role=jobseeker">
+            <Link to="/register?role=jobseeker">
               <Button size="lg" className="bg-white text-foreground hover:bg-gray-100 px-8 py-6 text-lg">
                 Start Job Search
               </Button>
             </Link>
-            <Link href="/register?role=employer">
+            <Link to="/register?role=employer">
               <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg">
                 Hire Talent
               </Button>

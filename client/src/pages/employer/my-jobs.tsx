@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +67,7 @@ export default function MyJobs() {
             </h1>
             <p className="text-muted-foreground mt-1">Manage and edit your job listings</p>
           </div>
-          <Link href="/employer/post-job">
+          <Link to="/employer/post-job">
             <Button className="gradient-primary text-white border-0 gap-2">
               <Plus className="w-5 h-5" />
               Post New Job
@@ -114,7 +114,7 @@ export default function MyJobs() {
                         {(job.applicants || []).length} applicants
                       </Badge>
 
-                      <Link href={`/jobs/${job.id}`}>
+                      <Link to={`/jobs/${job.id}`}>
                         <Button variant="ghost" size="icon" data-testid={`button-view-${job.id}`}>
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -169,7 +169,7 @@ export default function MyJobs() {
                 No Jobs Posted Yet
               </h3>
               <p className="text-muted-foreground mb-6">Create your first job posting to start receiving applications</p>
-              <Link href="/employer/post-job">
+              <Link to="/employer/post-job">
                 <Button className="gradient-primary text-white border-0">
                   <Plus className="w-4 h-4 mr-2" />
                   Post Your First Job

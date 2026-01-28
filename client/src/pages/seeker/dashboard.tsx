@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +45,7 @@ export default function SeekerDashboard() {
             </h1>
             <p className="text-muted-foreground mt-1">Track your applications and discover new opportunities</p>
           </div>
-          <Link href="/jobs">
+          <Link to="/jobs">
             <Button className="gradient-primary text-white border-0 gap-2" data-testid="button-browse-jobs">
               <Search className="w-5 h-5" />
               Browse Jobs
@@ -98,7 +98,7 @@ export default function SeekerDashboard() {
                     : "Great job! Your profile is complete"}
                 </p>
                 {profilePercent < 100 && (
-                  <Link href="/seeker/profile">
+                  <Link to="/seeker/profile">
                     <Button variant="outline" className="w-full gap-2">
                       Complete Profile
                       <ArrowRight className="w-4 h-4" />
@@ -113,7 +113,7 @@ export default function SeekerDashboard() {
           <Card className="lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.5s" }}>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle style={{ fontFamily: "var(--font-display)" }}>Recent Applications</CardTitle>
-              <Link href="/seeker/applications">
+              <Link to="/seeker/applications">
                 <Button variant="ghost" className="gap-2">
                   View All <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -141,8 +141,8 @@ export default function SeekerDashboard() {
                           application.status === "shortlisted"
                             ? "default"
                             : application.status === "rejected"
-                            ? "destructive"
-                            : "secondary"
+                              ? "destructive"
+                              : "secondary"
                         }
                         className={application.status === "shortlisted" ? "gradient-accent text-white border-0" : ""}
                       >
@@ -157,7 +157,7 @@ export default function SeekerDashboard() {
                     <FileText className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground mb-4">You haven't applied to any jobs yet</p>
-                  <Link href="/jobs">
+                  <Link to="/jobs">
                     <Button variant="outline" className="gap-2">
                       <Search className="w-4 h-4" />
                       Browse Jobs
@@ -176,7 +176,7 @@ export default function SeekerDashboard() {
               <TrendingUp className="w-5 h-5" />
               Recommended For You
             </CardTitle>
-            <Link href="/jobs">
+            <Link to="/jobs">
               <Button variant="ghost" className="gap-2">
                 View All <ArrowRight className="w-4 h-4" />
               </Button>
@@ -185,7 +185,7 @@ export default function SeekerDashboard() {
           <CardContent>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {jobs.slice(0, 3).map((job) => (
-                <Link href={`/jobs/${job.id}`} key={job.id}>
+                <Link to={`/jobs/${job.id}`} key={job.id}>
                   <div className="p-4 rounded-lg border hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
                     <div className="flex items-center gap-3 mb-3">
                       <img

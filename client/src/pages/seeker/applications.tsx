@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +53,7 @@ export default function MyApplications() {
             </h1>
             <p className="text-muted-foreground mt-1">Track the status of your job applications</p>
           </div>
-          <Link href="/jobs">
+          <Link to="/jobs">
             <Button className="gradient-primary text-white border-0 gap-2">
               Browse More Jobs
             </Button>
@@ -130,7 +130,7 @@ export default function MyApplications() {
                         {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                       </Badge>
 
-                      <Link href={`/jobs/${job.id}`}>
+                      <Link to={`/jobs/${job.id}`}>
                         <Button variant="outline" size="sm" className="gap-1" data-testid={`button-view-job-${job.id}`}>
                           View Job
                           <ExternalLink className="w-3 h-3" />
@@ -162,7 +162,7 @@ export default function MyApplications() {
                 No Applications Yet
               </h3>
               <p className="text-muted-foreground mb-6">Start applying to jobs to track your progress here</p>
-              <Link href="/jobs">
+              <Link to="/jobs">
                 <Button className="gradient-primary text-white border-0">
                   Browse Jobs
                 </Button>

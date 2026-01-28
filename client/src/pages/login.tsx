@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,10 +8,8 @@ import { Briefcase, Mail, Lock, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-
-
 export default function Login() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { login, loginWithGoogle, isLoading, error } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +19,7 @@ export default function Login() {
     try {
       const user = await login(email, password); // No role passed
       if (user) {
-        setLocation(user.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+        navigate(user.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
       }
     } catch (err) {
       // Error is handled by the auth context
@@ -32,7 +30,7 @@ export default function Login() {
     try {
       const user = await loginWithGoogle(); // No role passed
       if (user) {
-        setLocation(user.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
+        navigate(user.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
       }
     } catch (err) {
       // Error is handled by the auth context
@@ -47,7 +45,7 @@ export default function Login() {
       </div>
 
       <div className="relative w-full max-w-md animate-slide-up">
-        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
+        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
             <Briefcase className="w-6 h-6 text-white" />
           </div>
@@ -150,7 +148,7 @@ export default function Login() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Don't have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline font-medium" data-testid="link-register">
+              <Link to="/register" className="text-primary hover:underline font-medium" data-testid="link-register">
                 Sign up
               </Link>
             </p>

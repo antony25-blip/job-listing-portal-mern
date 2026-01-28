@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { useJobs } from "@/lib/jobs-context";
 import { useAuth } from "@/lib/auth-context";
 
 export default function Jobs() {
+  const navigate = useNavigate();
   const { jobs } = useJobs();
   const { isAuthenticated, user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,7 +32,7 @@ export default function Jobs() {
       <nav className="sticky top-0 z-50 bg-card border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
@@ -41,15 +42,15 @@ export default function Jobs() {
             </Link>
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
-                <Link href={user?.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard"}>
+                <Link to={user?.role === "employer" ? "/employer/dashboard" : "/seeker/dashboard"}>
                   <Button className="gradient-primary text-white border-0" data-testid="button-dashboard">Dashboard</Button>
                 </Link>
               ) : (
                 <>
-                  <Link href="/login">
+                  <Link to="/login">
                     <Button variant="ghost" data-testid="button-login">Sign In</Button>
                   </Link>
-                  <Link href="/register">
+                  <Link to="/register">
                     <Button className="gradient-primary text-white border-0" data-testid="button-register">Get Started</Button>
                   </Link>
                 </>
@@ -113,7 +114,7 @@ export default function Jobs() {
 
         <div className="grid gap-4">
           {filteredJobs.map((job, index) => (
-            <Link href={isAuthenticated ? `/jobs/${job.id}` : "/login"} key={job.id}>
+            <Link to={isAuthenticated ? `/jobs/${job.id}` : "/login"} key={job.id}>
               <Card
                 className="hover:border-primary/50 transition-all duration-300 hover:shadow-lg cursor-pointer animate-slide-up"
                 style={{ animationDelay: `${index * 0.05}s` }}
@@ -159,14 +160,8 @@ export default function Jobs() {
                           </span>
                         </div>
                         <Button className="gradient-primary text-white border-0 z-10" onClick={(e) => {
-                          e.preventDefault(); // Prevent card link from triggering if nested
-                          // Navigation is handled by key/link wrapper, but explicit button is nice
-                          window.location.href = `/jobs/${job.id}`;
-                          // Or better, use wouter navigate programmatic but we are inside map
-                          // Using a Link component wrapper is usually enough, but user asked for BUTTON.
-                          // Since the whole card is a Link, this button is visual but logically redundant unless we stop propagation.
-                          // But wait, the whole card IS a Link. So clicking anywhere goes to detail.
-                          // The user wants a BUTTON.
+                          e.preventDefault();
+                          navigate(`/jobs/${job.id}`);
                         }}>
                           Apply Now
                         </Button>

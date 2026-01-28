@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
 export default function PostJob() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { addJob } = useJobs();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -66,7 +66,7 @@ export default function PostJob() {
       description: "Your job listing is now live.",
     });
 
-    setLocation("/employer/jobs");
+    navigate("/employer/jobs");
   };
 
   return (
@@ -194,7 +194,7 @@ export default function PostJob() {
           </Card>
 
           <div className="mt-8 flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => setLocation("/employer/dashboard")}>
+            <Button type="button" variant="outline" onClick={() => navigate("/employer/dashboard")}>
               Cancel
             </Button>
             <Button type="submit" className="gradient-primary text-white border-0 px-8" data-testid="button-submit-job">

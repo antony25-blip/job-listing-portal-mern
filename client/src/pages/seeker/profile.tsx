@@ -10,7 +10,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Camera, Plus, X, MapPin, Briefcase, Mail, Phone, FileText, Save, Loader2, Upload } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 export default function Profile() {
@@ -19,7 +19,7 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch fresh profile data
-  const { data: profileData, isLoading: isFetching } = useQuery({
+  const { data: profileData, isLoading: isFetching } = useQuery<any>({
     queryKey: ["/api/profile/jobseeker"],
     enabled: !!user,
   });
