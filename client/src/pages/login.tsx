@@ -15,9 +15,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("jobseeker");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password, role);
+    await login(email, password, role);
     setLocation(role === "employer" ? "/employer/dashboard" : "/seeker/dashboard");
   };
 

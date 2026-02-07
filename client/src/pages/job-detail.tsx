@@ -13,12 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 export default function JobDetail() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  const { jobs, applyToJob } = useJobs();
+  const { jobs, applyToJob, myApplications } = useJobs();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [coverLetter, setCoverLetter] = useState("");
   const [isApplying, setIsApplying] = useState(false);
-  const [hasApplied, setHasApplied] = useState(false);
 
   const job = jobs.find((j) => j.id === params.id);
 
@@ -35,7 +34,12 @@ export default function JobDetail() {
     );
   }
 
-  const alreadyApplied = job.applicants.some((app) => app.applicantId === user?.id) || hasApplied;
+  // Check if user has already applied by looking at their application history
+  // jobId might be populated object or string id depending on API response
+  const alreadyApplied = myApplications.some(app => {
+    const appId = typeof app.jobId === 'object' ? (app.jobId as any)._id : app.jobId;
+    return appId === job.id;
+  });
 
   const handleApply = () => {
     if (!user) {
@@ -44,16 +48,10 @@ export default function JobDetail() {
     }
 
     applyToJob(job.id, {
-      jobId: job.id,
-      applicantId: user.id,
-      applicantName: user.name,
-      applicantEmail: user.email,
-      applicantAvatar: user.avatar,
       coverLetter,
       resumeUrl: user.resumeUrl,
     });
 
-    setHasApplied(true);
     setIsApplying(false);
     toast({
       title: "Application Submitted!",

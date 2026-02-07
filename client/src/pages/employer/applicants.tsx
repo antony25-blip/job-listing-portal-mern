@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Applicants() {
-  const { jobs, updateApplicationStatus } = useJobs();
+  const { jobs, updateApplicationStatus, employerApplications } = useJobs();
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedApplicant, setSelectedApplicant] = useState<(Application & { jobTitle: string; jobId: string }) | null>(null);
@@ -19,13 +19,21 @@ export default function Applicants() {
 
   const myJobs = jobs.filter((job) => job.employerId === user?.id || job.company === user?.company);
 
-  const allApplicants = myJobs.flatMap((job) =>
-    job.applicants.map((app) => ({
-      ...app,
-      jobTitle: job.title,
-      jobId: job.id,
-    }))
-  );
+  // Map backend employer applications to the format expected by the UI
+  // The backend returns populated objects
+  const allApplicants = employerApplications.map((app: any) => ({
+    id: app._id,
+    jobId: app.jobId?._id || app.jobId,
+    jobTitle: app.jobId?.title || "Unknown Job",
+    applicantId: app.applicantId?._id || app.applicantId,
+    applicantName: app.applicantId?.name || "Unknown Applicant",
+    applicantEmail: app.applicantId?.email || "",
+    applicantAvatar: app.applicantId?.avatar,
+    coverLetter: app.coverLetter,
+    resumeUrl: app.resumeUrl,
+    status: app.status,
+    appliedAt: app.createdAt
+  }));
 
   const filteredApplicants =
     jobFilter === "all"
